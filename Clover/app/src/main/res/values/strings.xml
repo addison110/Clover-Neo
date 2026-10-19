@@ -35,16 +35,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="update_install">Install</string>
     <string name="update_install_downloading">Downloading update</string>
     <string name="update_install_download_failed">Download failed</string>
-    <string name="update_install_download_move_failed">Failed to move downloaded file to the Download directory.</string>
     <string name="update_retry_title">Retry update</string>
     <string name="update_retry">Clover was not updated yet. Tap \"retry\" to retry the install.</string>
     <string name="update_retry_button">retry</string>
 
-    <string name="update_storage_permission_required_title">Storage permission required</string>
-    <string name="update_storage_permission_required">
-"Permission to access storage is required for installing the update.
-
-Re-enable this permission in the app settings if you permanently disabled it."</string>
 
     <plurals name="minutes">
         <item quantity="one">%d minute</item>

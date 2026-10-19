@@ -33,15 +33,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="update_install">Pasang</string>
     <string name="update_install_downloading">Mengunduh pembaruan</string>
     <string name="update_install_download_failed">Unduhan gagal</string>
-    <string name="update_install_download_move_failed">Gagal memindahkan file yang diunduh ke direktori Unduhan.</string>
     <string name="update_retry_title">Coba lagi pembaruan</string>
     <string name="update_retry">Clover belum diperbarui. Ketuk \"coba lagi\" untuk mencoba ulang pemasangan.</string>
     <string name="update_retry_button">coba lagi</string>
-    <string name="update_storage_permission_required_title">Izin penyimpanan diperlukan</string>
-    <string name="update_storage_permission_required">
-"Izin untuk mengakses penyimpanan diperlukan untuk menginstal pembaruan.
-
-Aktifkan kembali izin ini di pengaturan aplikasi jika Anda menonaktifkannya secara permanen."</string>
     <plurals name="minutes">
         <item quantity="other">%d menit</item>
     </plurals>

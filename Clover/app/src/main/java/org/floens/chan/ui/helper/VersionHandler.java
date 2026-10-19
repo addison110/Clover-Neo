@@ -17,7 +17,6 @@
  */
 package org.floens.chan.ui.helper;
 
-import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,7 +35,6 @@ import org.floens.chan.R;
 import org.floens.chan.core.net.UpdateApiRequest;
 import org.floens.chan.core.settings.ChanSettings;
 import org.floens.chan.core.update.UpdateManager;
-import org.floens.chan.ui.activity.RuntimePermissionsHelper;
 import org.floens.chan.utils.AndroidUtils;
 import org.floens.chan.utils.Logger;
 
@@ -80,15 +78,13 @@ public class VersionHandler implements UpdateManager.UpdateCallback {
      * Context to show dialogs to.
      */
     private Context context;
-    private RuntimePermissionsHelper runtimePermissionsHelper;
 
     private UpdateManager updateManager;
 
     private ProgressDialog updateDownloadDialog;
 
-    public VersionHandler(Context context, RuntimePermissionsHelper runtimePermissionsHelper) {
+    public VersionHandler(Context context) {
         this.context = context;
-        this.runtimePermissionsHelper = runtimePermissionsHelper;
 
         updateManager = new UpdateManager(this);
     }
@@ -181,25 +177,8 @@ public class VersionHandler implements UpdateManager.UpdateCallback {
     }
 
     private void updateInstallRequested(final UpdateApiRequest.UpdateApiMessage message) {
-        runtimePermissionsHelper.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, new RuntimePermissionsHelper.Callback() {
-            @Override
-            public void onRuntimePermissionResult(boolean granted) {
-                if (granted) {
-                    createDownloadProgressDialog();
-                    updateManager.doUpdate(new UpdateManager.Update(message.apkUrl));
-                } else {
-                    runtimePermissionsHelper.showPermissionRequiredDialog(context,
-                            context.getString(R.string.update_storage_permission_required_title),
-                            context.getString(R.string.update_storage_permission_required),
-                            new RuntimePermissionsHelper.PermissionRequiredDialogCallback() {
-                                @Override
-                                public void retryPermissionRequest() {
-                                    updateInstallRequested(message);
-                                }
-                            });
-                }
-            }
-        });
+        createDownloadProgressDialog();
+        updateManager.doUpdate(new UpdateManager.Update(message.apkUrl));
     }
 
     private void createDownloadProgressDialog() {
@@ -229,14 +208,6 @@ public class VersionHandler implements UpdateManager.UpdateCallback {
         updateDownloadDialog = null;
         new AlertDialog.Builder(context)
                 .setTitle(R.string.update_install_download_failed)
-                .setPositiveButton(R.string.ok, null)
-                .show();
-    }
-
-    @Override
-    public void onUpdateDownloadMoveFailed() {
-        new AlertDialog.Builder(context)
-                .setTitle(R.string.update_install_download_move_failed)
                 .setPositiveButton(R.string.ok, null)
                 .show();
     }

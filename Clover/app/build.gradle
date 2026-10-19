@@ -30,7 +30,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "org.floens.chan"
+        applicationId = "io.github.addison110.cloverneo"
         minSdk = 23
         targetSdk = 36
 
@@ -93,29 +93,32 @@ android {
         // the flavor name is appended to the name in the settings.
         "default" {
             dimension = "default"
-            resValue "string", "app_name", "Clover"
+            resValue "string", "app_name", "Clover Neo"
             resValue "string", "app_flavor_name", ""
             buildConfigField "String", "BUILD_HASH", "\"$hash\""
-            buildConfigField "String", "UPDATE_API_ENDPOINT", "\"https://build.floens.org/api/update\""
+            // Latest GitHub release, see UpdateApiRequest
+            buildConfigField "String", "UPDATE_API_ENDPOINT", "\"https://api.github.com/repos/addison110/Clover-Neo/releases/latest\""
         }
 
         dev {
             dimension = "default"
             applicationIdSuffix = ".dev"
-            resValue "string", "app_name", "Clover dev"
+            resValue "string", "app_name", "Clover Neo dev"
             resValue "string", "app_flavor_name", ""
             buildConfigField "String", "BUILD_HASH", "\"$hash\""
-            buildConfigField "String", "UPDATE_API_ENDPOINT", "\"https://build.floens.org/api/update_dev\""
+            // No update channel for dev builds
+            buildConfigField "String", "UPDATE_API_ENDPOINT", "\"\""
 
             versionNameSuffix = "-" + hash
         }
 
         fdroid {
             dimension = "default"
-            resValue "string", "app_name", "Clover"
+            resValue "string", "app_name", "Clover Neo"
             resValue "string", "app_flavor_name", "F-Droid"
             buildConfigField "String", "BUILD_HASH", "\"$hash\""
-            buildConfigField "String", "UPDATE_API_ENDPOINT", "\"https://chandevel.github.io/Clover/api/update\""
+            // F-Droid handles updates itself
+            buildConfigField "String", "UPDATE_API_ENDPOINT", "\"\""
         }
     }
 

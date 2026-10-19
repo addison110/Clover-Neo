@@ -117,7 +117,7 @@ public class StartActivity extends AppCompatActivity implements
         imagePickDelegate = new ImagePickDelegate(this);
         runtimePermissionsHelper = new RuntimePermissionsHelper(this);
         resultHelper = new ActivityResultHelper.ActivityStarterHelper();
-        versionHandler = new VersionHandler(this, runtimePermissionsHelper);
+        versionHandler = new VersionHandler(this);
 
         contentView = findViewById(android.R.id.content);
 

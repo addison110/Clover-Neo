@@ -35,14 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="update_install">Installeren</string>
     <string name="update_install_downloading">Update aan het downloaden</string>
     <string name="update_install_download_failed">Downloaden mislukt</string>
-    <string name="update_install_download_move_failed">Kon het gedownloade bestand niet verplaatsen naar de Downloads map.</string>
     <string name="update_retry_title">Probeer update opnieuw</string>
     <string name="update_retry">Clover is nog niet geüpdatet. Tik op \"opnieuw proberen\" om de installatie opnieuw te proberen.</string>
     <string name="update_retry_button">opnieuw proberen</string>
-    <string name="update_storage_permission_required_title">Opslagpermissie vereist</string>
-    <string name="update_storage_permission_required">\"Permissie voor toegang tot de opslag is vereist voor het installeren van de update.
-
-Zet de permissie opnieuw aan in de app-instellingen als je het uit hebt gezet.\"</string>
     <plurals name="minutes">
         <item quantity="one">%d minuut</item>
         <item quantity="other">%d minuten</item>

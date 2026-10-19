@@ -35,15 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   <string name="update_install">Установить</string>
   <string name="update_install_downloading">Загружается обновление</string>
   <string name="update_install_download_failed">Ошибка при загрузке</string>
-  <string name="update_install_download_move_failed">Не удалось переместить скачанный файл в каталог Загрузки.</string>
   <string name="update_retry_title">Повторите попытку обновления</string>
   <string name="update_retry">Clover пока не был обновлен. Нажмите \"повтор\" чтобы повторить установку.</string>
   <string name="update_retry_button">повтор</string>
-  <string name="update_storage_permission_required_title">Нужно разрешение на доступ к памяти устройства</string>
-  <string name="update_storage_permission_required">
-\"Разрешение на доступ к памяти устройства необходимо для установки обновления.
-
-Включите это разрешение в настройках приложений если ранее отказали в нем.\"</string>
   <plurals name="minutes">
     <item quantity="one">%d минута</item>
     <item quantity="few">%d минуты</item>

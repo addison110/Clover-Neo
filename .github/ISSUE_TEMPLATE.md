@@ -6,4 +6,4 @@
 
 Android version: [Find at Settings > About phone > android version]
 Phone model: [Find at Settings > About phone > Model number]
-Clover version: [Find at the bottom of the settings screen of Clover]
+Clover Neo version: [Find at the bottom of the settings screen of Clover Neo]

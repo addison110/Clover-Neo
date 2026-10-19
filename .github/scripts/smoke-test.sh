@@ -133,6 +133,20 @@ for page in json.load(sys.stdin):
 ' 2> /dev/null
 }
 
+# Taps the toolbar's menu button, left of the title. Swiping in from the edge is also the system
+# back gesture with gesture navigation, so it only opens the drawer some of the time.
+open_drawer() {
+    local pos
+    dump
+    if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/title$' left); then
+        adb shell input tap $pos
+        log "tap menu button"
+    else
+        adb shell input swipe 2 $((HEIGHT / 2)) $((WIDTH * 3 / 4)) $((HEIGHT / 2)) 300
+        log "swipe drawer open"
+    fi
+}
+
 alive() {
     adb shell pidof "$PKG" > /dev/null
 }
@@ -149,7 +163,7 @@ shot launch 5
 tap resource-id 'permission_allow_button$' && shot notification-permission-allowed
 
 # Add 4chan with all boards
-adb shell input swipe 2 $((HEIGHT / 2)) $((WIDTH * 3 / 4)) $((HEIGHT / 2)) 300
+open_drawer
 shot drawer
 tap text '^Setup sites$' && shot sites-setup
 tap resource-id ':id/add$' && shot add-site-dialog

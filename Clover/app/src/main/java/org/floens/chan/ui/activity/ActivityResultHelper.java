@@ -18,6 +18,7 @@
 package org.floens.chan.ui.activity;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.util.SparseArray;
@@ -131,10 +132,12 @@ public class ActivityResultHelper {
             if (activityResultCallbacks.indexOfKey(requestCode) >= 0) {
                 throw new IllegalArgumentException("requestCode " + requestCode + " already used");
             }
-            if (intent.resolveActivity(activity.getPackageManager()) != null) {
+            // Not checked with resolveActivity, since Android 11 that needs the handling apps
+            // declared in the manifest
+            try {
                 activity.startActivityForResult(intent, requestCode);
                 activityResultCallbacks.put(requestCode, callback);
-            } else {
+            } catch (ActivityNotFoundException e) {
                 Logger.e(TAG, "Can't start activity for result, intent does not resolve.");
                 callback.onActivityResult(Activity.RESULT_CANCELED, null);
             }

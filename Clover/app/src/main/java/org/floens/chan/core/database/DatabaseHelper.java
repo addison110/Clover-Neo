@@ -44,7 +44,7 @@ import java.util.Map;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = "DatabaseHelper";
 
-    private static final String DATABASE_NAME = "ChanDB";
+    public static final String DATABASE_NAME = "ChanDB";
     private static final int DATABASE_VERSION = 26;
 
     public Dao<Pin, Integer> pinDao;

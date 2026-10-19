@@ -27,17 +27,26 @@ adb shell am start -W -n "$ACTIVITY" > /dev/null
 shot launch 5
 tap resource-id 'permission_allow_button$' && shot notification-permission-allowed
 
-# Add 4chan with all boards
-setup_4chan
+# A new install starts on 4chan's /g/
+failed=0
+shot default-board 5
+if shows_threads; then
+    log "the default board shows threads"
+else
+    log "FAIL: the default board shows no threads"
+    failed=1
+fi
+
+# Add all boards of 4chan
+setup_4chan site-exists
 shot browse 5
 
 # Board and thread, opened by link
 open_url "https://boards.4chan.org/g/"
 shot board 6
-board_failed=0
-if ! python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/thumbnail(_view)?$' > /dev/null; then
+if ! shows_threads; then
     log "FAIL: the board shows no threads"
-    board_failed=1
+    failed=1
 fi
 THREAD=$(first_thread g)
 if [ -n "$THREAD" ]; then
@@ -88,4 +97,4 @@ for _ in $(seq 8); do
 done
 shot after-back
 
-check_crashes "$PKG" && [ "$board_failed" = 0 ] && log "PASS: no crashes"
+check_crashes "$PKG" && [ "$failed" = 0 ] && log "PASS: no crashes"

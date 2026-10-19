@@ -126,6 +126,16 @@ public class SiteRepository {
         setId(model, 0);
     }
 
+    // Called before #initialize to add 4chan when the database was just created. It only adds the
+    // model to the database.
+    public void addDefaultSite() {
+        SiteConfig config = new SiteConfig();
+        config.classId = SiteRegistry.SITE_CLASSES.indexOfValue(Chan4.class);
+        config.external = false;
+
+        createFromClass(config, new JsonSettings());
+    }
+
     public Site createFromClass(Class<? extends Site> siteClass) {
         Site site = instantiateSiteClass(siteClass);
 

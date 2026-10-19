@@ -136,6 +136,17 @@ open_drawer() {
     fi
 }
 
+# shows_threads: whether the screen shows posts with thumbnails, waiting up to 20 seconds for
+# them to load
+shows_threads() {
+    for _ in $(seq 10); do
+        dump
+        python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/thumbnail(_view)?$' > /dev/null && return 0
+        sleep 2
+    done
+    return 1
+}
+
 alive() {
     adb shell pidof "$PKG" > /dev/null
 }
@@ -145,14 +156,17 @@ init_device() {
     log "device API $(adb shell getprop ro.build.version.sdk | tr -d '\r'), screen ${WIDTH}x${HEIGHT}"
 }
 
-# Adds 4chan with all its boards, starting from the board screen of a fresh install
+# Adds all boards of 4chan, starting from the board screen. Also adds the site itself unless
+# called with "site-exists".
 setup_4chan() {
     open_drawer
     shot drawer
     tap text '^Setup sites$' && shot sites-setup
-    tap resource-id ':id/add$' && shot add-site-dialog
-    type_into ':id/url$' 4chan.org
-    tap text '^add$' && shot site-added 4
+    if [ "${1:-}" != site-exists ]; then
+        tap resource-id ':id/add$' && shot add-site-dialog
+        type_into ':id/url$' 4chan.org
+        tap text '^add$' && shot site-added 4
+    fi
     tap text '^4chan$' && shot site-configure
     tap text '^Setup boards$' && shot board-setup
     tap resource-id ':id/add$' && shot add-boards-dialog 4

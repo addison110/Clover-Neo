@@ -102,14 +102,11 @@ shot neo-restarted 5
 grep -q "Imported the Clover backup" <(adb logcat -d -s CloverImport) || fail "the import was not applied"
 log "the import was applied"
 
-# Without the site the link opens an error dialog instead of the board
-open_url "https://boards.4chan.org/g/"
-shot neo-board 6
-dump
-if python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/thumbnail(_view)?$' > /dev/null; then
-    log "the imported /g/ board loads"
+# Neo starts on its default /g/, after the import on the first board saved in Clover
+if shows_threads && python3 "$HERE/ui.py" "$OUT/current.xml" text '^/3/' > /dev/null; then
+    log "Clover's /3/ board is open and shows threads"
 else
-    fail "the imported /g/ board did not load"
+    fail "Clover's boards were not imported, /3/ is not open"
 fi
 open_drawer
 shot neo-drawer-after-import

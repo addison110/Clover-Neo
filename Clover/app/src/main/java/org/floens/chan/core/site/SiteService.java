@@ -18,10 +18,13 @@
 package org.floens.chan.core.site;
 
 
+import org.floens.chan.core.manager.BoardManager;
+import org.floens.chan.core.model.orm.Board;
 import org.floens.chan.core.model.orm.SiteModel;
 import org.floens.chan.core.repository.SiteRepository;
 import org.floens.chan.core.settings.json.JsonSettings;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -30,6 +33,7 @@ import javax.inject.Singleton;
 @Singleton
 public class SiteService {
     private static boolean addSiteForLegacy = false;
+    private static boolean addDefaultSite = false;
 
     /**
      * Called from the DatabaseHelper when upgrading to the tables with a site id.
@@ -38,15 +42,26 @@ public class SiteService {
         addSiteForLegacy = true;
     }
 
+    /**
+     * Called from the DatabaseHelper when the database was just created, so a new install starts
+     * with 4chan's /g/ instead of an empty screen.
+     */
+    public static void addDefaultSite() {
+        addDefaultSite = true;
+    }
+
     private SiteRepository siteRepository;
     private SiteResolver resolver;
+    private BoardManager boardManager;
 
     private boolean initialized = false;
 
     @Inject
-    public SiteService(SiteRepository siteRepository, SiteResolver resolver) {
+    public SiteService(SiteRepository siteRepository, SiteResolver resolver,
+                       BoardManager boardManager) {
         this.siteRepository = siteRepository;
         this.resolver = resolver;
+        this.boardManager = boardManager;
     }
 
     public boolean areSitesSetup() {
@@ -99,7 +114,20 @@ public class SiteService {
             siteRepository.addLegacySite();
         }
 
+        boolean addDefault = addDefaultSite;
+        addDefaultSite = false;
+        if (addDefault) {
+            siteRepository.addDefaultSite();
+        }
+
         siteRepository.initialize();
+
+        if (addDefault) {
+            // The full board list is fetched when the site initializes, this keeps /g/ saved
+            Site site = siteRepository.all().getAll().get(0);
+            boardManager.updateAvailableBoardsForSite(site, Collections.singletonList(
+                    new Board(site, "Technology", "g", true, true)));
+        }
     }
 
     public interface SiteAddCallback {

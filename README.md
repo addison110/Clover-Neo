@@ -30,8 +30,12 @@ To sign release builds, create `Clover/app/keys.properties`, see `Clover/app/bui
 The in-app updater of the `default` flavor reads the latest GitHub release of this repository.
 
 1. Bump `versionName` and `versionCode` in `Clover/app/build.gradle` (`versionCode` is XXYYZZ for vXX.YY.ZZ).
-2. Build and sign the release APK: `./gradlew assembleDefaultRelease`.
-3. Create a GitHub release with a tag matching `versionName` (e.g. `v3.1.0`) and attach the APK. The release notes are shown in the update dialog.
+2. Write the release notes in `.github/release-notes/<versionName>.md`. They are shown in the update dialog.
+3. Merge to `dev`, then push a tag matching `versionName`: `git tag v3.1.0 && git push origin v3.1.0`.
+
+The Release workflow builds the APK signed with the release key and publishes the GitHub release. It needs the `RELEASE_KEYSTORE_BASE64`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` repository secrets. Every release must be signed with the same key, otherwise existing installs can't update.
+
+Without `Clover/app/keys.properties`, release builds are signed with the debug key. CI uses this to smoke-test the minified release build.
 
 ## Translations
 Translations live in `Clover/app/src/main/res/values-*/strings.xml`. Pull requests with new or updated translations are welcome.

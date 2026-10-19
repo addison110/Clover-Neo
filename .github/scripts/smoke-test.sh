@@ -98,10 +98,12 @@ type_into() {
         fi
         sleep 1
         dump
-        if python3 "$HERE/ui.py" "$OUT/current.xml" text "^$2\$" > /dev/null; then
+        # Before Android 8 the Material text field reports its text as "<text>, <label>"
+        if python3 "$HERE/ui.py" "$OUT/current.xml" text "^$2(,|\$)" > /dev/null; then
             log "typed $2"
             return 0
         fi
+        [ "$attempt" = 3 ] && break
         # Clear the field and try again
         adb shell input keyevent KEYCODE_MOVE_END
         for _ in $(seq 30); do adb shell input keyevent KEYCODE_DEL; done

@@ -379,7 +379,7 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="import_clover_error_title">Can\'t import this file</string>
     <string name="import_clover_not_a_backup">This is not an adb backup. Create one on a computer with:\nadb backup -f clover.ab org.floens.chan</string>
     <string name="import_clover_encrypted">This backup is encrypted. Create it again and leave the password empty.</string>
-    <string name="import_clover_no_data">This backup has no Clover data. Make sure it was created with:\nadb backup -f clover.ab org.floens.chan\n\nSome phones don\'t allow app backups, the backup is empty then.</string>
+    <string name="import_clover_no_data">This backup has no Clover data. Make sure it was created with:\nadb backup -f clover.ab org.floens.chan\n\nOpen Clover once before creating the backup, Android leaves out apps that were force stopped. Some phones don\'t allow app backups at all.</string>
     <string name="import_clover_failed">Reading the backup failed.</string>
 
     <!-- Thread watcher -->

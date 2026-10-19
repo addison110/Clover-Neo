@@ -26,7 +26,6 @@ import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.animation.LinearInterpolator;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
@@ -41,6 +40,7 @@ import org.floens.chan.core.presenter.ThreadPresenter;
 import org.floens.chan.core.settings.ChanSettings;
 import org.floens.chan.ui.cell.PostCellInterface;
 import org.floens.chan.ui.helper.PostPopupHelper;
+import org.floens.chan.ui.theme.ThemeHelper;
 import org.floens.chan.ui.view.LoadView;
 import org.floens.chan.ui.view.ThumbnailView;
 
@@ -86,7 +86,7 @@ public class PostRepliesController extends Controller {
         loadView = view.findViewById(R.id.loadview);
 
         if (Build.VERSION.SDK_INT >= 21) {
-            statusBarColorPrevious = getWindow().getStatusBarColor();
+            statusBarColorPrevious = ThemeHelper.getStatusBarColor((Activity) context);
             if (statusBarColorPrevious != 0) {
                 animateStatusBar(true, statusBarColorPrevious);
             }
@@ -269,21 +269,17 @@ public class PostRepliesController extends Controller {
                 if (Build.VERSION.SDK_INT >= 21) { // Make lint happy
                     float progress = (float) animation.getAnimatedValue();
                     if (progress == 0f) {
-                        getWindow().setStatusBarColor(originalColor);
+                        ThemeHelper.setStatusBarColor((Activity) context, originalColor);
                     } else {
                         int r = (int) ((1f - progress) * Color.red(originalColor));
                         int g = (int) ((1f - progress) * Color.green(originalColor));
                         int b = (int) ((1f - progress) * Color.blue(originalColor));
-                        getWindow().setStatusBarColor(Color.argb(255, r, g, b));
+                        ThemeHelper.setStatusBarColor((Activity) context, Color.argb(255, r, g, b));
                     }
                 }
             }
         });
         statusBar.setDuration(TRANSITION_DURATION).setInterpolator(new LinearInterpolator());
         statusBar.start();
-    }
-
-    private Window getWindow() {
-        return ((Activity) context).getWindow();
     }
 }

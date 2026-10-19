@@ -17,15 +17,15 @@
  */
 package org.floens.chan.ui.activity;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.nfc.NdefMessage;
-import android.nfc.NfcAdapter;
-import android.nfc.NfcEvent;
+import android.os.Build;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -50,7 +50,6 @@ import org.floens.chan.core.site.Site;
 import org.floens.chan.core.site.SiteResolver;
 import org.floens.chan.core.site.SiteService;
 import org.floens.chan.ui.controller.BrowseController;
-import org.floens.chan.ui.controller.DoubleNavigationController;
 import org.floens.chan.ui.controller.DrawerController;
 import org.floens.chan.ui.controller.SplitNavigationController;
 import org.floens.chan.ui.controller.StyledToolbarNavigationController;
@@ -71,7 +70,6 @@ import javax.inject.Inject;
 import static org.floens.chan.Chan.inject;
 
 public class StartActivity extends AppCompatActivity implements
-        NfcAdapter.CreateNdefMessageCallback,
         ActivityResultHelper.ActivityResultStarter {
     private static final String TAG = "StartActivity";
 
@@ -133,18 +131,26 @@ public class StartActivity extends AppCompatActivity implements
         setContentView(drawerController.view);
         addController(drawerController);
 
+        getOnBackPressedDispatcher().addCallback(this, backCallback);
+
         // Prevent overdraw
         // Do this after setContentView, or the decor creating will reset the background to a default non-null drawable
         getWindow().setBackgroundDrawable(null);
 
-        NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
-        if (adapter != null) {
-            adapter.setNdefPushMessageCallback(this, this);
-        }
-
         setupFromStateOrFreshLaunch(savedInstanceState);
 
         versionHandler.run();
+
+        requestNotificationPermission();
+    }
+
+    private void requestNotificationPermission() {
+        // Needed for the thread watcher and save notifications on Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                !runtimePermissionsHelper.hasPermission(Manifest.permission.POST_NOTIFICATIONS)) {
+            runtimePermissionsHelper.requestPermission(Manifest.permission.POST_NOTIFICATIONS, granted -> {
+            });
+        }
     }
 
     @Override
@@ -411,34 +417,6 @@ public class StartActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
-    public NdefMessage createNdefMessage(NfcEvent event) {
-        Controller threadController = null;
-        if (drawerController.childControllers.get(0) instanceof DoubleNavigationController) {
-            SplitNavigationController splitNavigationController = (SplitNavigationController) drawerController.childControllers.get(0);
-            if (splitNavigationController.rightController instanceof NavigationController) {
-                NavigationController rightNavigationController = (NavigationController) splitNavigationController.rightController;
-                for (Controller controller : rightNavigationController.childControllers) {
-                    if (controller instanceof NfcAdapter.CreateNdefMessageCallback) {
-                        threadController = controller;
-                        break;
-                    }
-                }
-
-            }
-        }
-
-        if (threadController == null) {
-            threadController = mainNavigationController.getTop();
-        }
-
-        if (threadController instanceof NfcAdapter.CreateNdefMessageCallback) {
-            return ((NfcAdapter.CreateNdefMessageCallback) threadController).createNdefMessage(event);
-        } else {
-            return null;
-        }
-    }
-
     public void addController(Controller controller) {
         stack.add(controller);
     }
@@ -471,24 +449,34 @@ public class StartActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        if (!stackTop().onBack()) {
-            if (ChanSettings.confirmExit.get()) {
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.action_confirm_exit_title)
-                        .setNegativeButton(R.string.cancel, null)
-                        .setPositiveButton(R.string.exit, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                StartActivity.super.onBackPressed();
-                            }
-                        })
-                        .show();
-            } else {
-                super.onBackPressed();
+    // onBackPressed() is no longer called on Android 16, back events go through the dispatcher.
+    private final OnBackPressedCallback backCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            if (!stackTop().onBack()) {
+                if (ChanSettings.confirmExit.get()) {
+                    new AlertDialog.Builder(StartActivity.this)
+                            .setTitle(R.string.action_confirm_exit_title)
+                            .setNegativeButton(R.string.cancel, null)
+                            .setPositiveButton(R.string.exit, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    exit();
+                                }
+                            })
+                            .show();
+                } else {
+                    exit();
+                }
             }
         }
+    };
+
+    private void exit() {
+        // Let the system handle the back event as if we did not intercept it.
+        backCallback.setEnabled(false);
+        getOnBackPressedDispatcher().onBackPressed();
+        backCallback.setEnabled(true);
     }
 
     @Override

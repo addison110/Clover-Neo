@@ -123,11 +123,14 @@ for page in json.load(sys.stdin):
 }
 
 # Taps the toolbar's menu button, left of the title. Swiping in from the edge is also the system
-# back gesture with gesture navigation, so it only opens the drawer some of the time.
+# back gesture with gesture navigation, so it only opens the drawer some of the time. Posts have
+# a title view too, so it looks for the toolbar's title container first, which older Clover
+# versions don't have.
 open_drawer() {
     local pos
     dump
-    if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/title$' left); then
+    if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/title_container$' left) ||
+        pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/title$' left); then
         adb shell input tap $pos
         log "tap menu button"
     else

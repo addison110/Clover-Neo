@@ -51,6 +51,7 @@ import org.floens.chan.core.presenter.ImageViewerPresenter;
 import org.floens.chan.core.settings.ChanSettings;
 import org.floens.chan.core.site.ImageSearch;
 import org.floens.chan.ui.adapter.ImageViewerAdapter;
+import org.floens.chan.ui.theme.ThemeHelper;
 import org.floens.chan.ui.toolbar.NavigationItem;
 import org.floens.chan.ui.toolbar.Toolbar;
 import org.floens.chan.ui.toolbar.ToolbarMenu;
@@ -353,7 +354,7 @@ public class ImageViewerController extends Controller implements ImageViewerPres
         }
 
         if (Build.VERSION.SDK_INT >= 21) {
-            statusBarColorPrevious = getWindow().getStatusBarColor();
+            statusBarColorPrevious = ThemeHelper.getStatusBarColor((Activity) context);
         }
 
         setBackgroundAlpha(0f);
@@ -525,7 +526,7 @@ public class ImageViewerController extends Controller implements ImageViewerPres
 
     private void setStatusBarColor(int color) {
         if (Build.VERSION.SDK_INT >= 21) {
-            getWindow().setStatusBarColor(color);
+            ThemeHelper.setStatusBarColor((Activity) context, color);
         }
     }
 

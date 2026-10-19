@@ -35,15 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   <string name="update_install">Установить</string>
   <string name="update_install_downloading">Загружается обновление</string>
   <string name="update_install_download_failed">Ошибка при загрузке</string>
-  <string name="update_install_download_move_failed">Не удалось переместить скачанный файл в каталог Загрузки.</string>
   <string name="update_retry_title">Повторите попытку обновления</string>
   <string name="update_retry">Clover пока не был обновлен. Нажмите \"повтор\" чтобы повторить установку.</string>
   <string name="update_retry_button">повтор</string>
-  <string name="update_storage_permission_required_title">Нужно разрешение на доступ к памяти устройства</string>
-  <string name="update_storage_permission_required">
-\"Разрешение на доступ к памяти устройства необходимо для установки обновления.
-
-Включите это разрешение в настройках приложений если ранее отказали в нем.\"</string>
   <plurals name="minutes">
     <item quantity="one">%d минута</item>
     <item quantity="few">%d минуты</item>
@@ -386,12 +380,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   <!-- Main About group -->
   <string name="settings_group_about">О программе</string>
   <string name="settings_update_check">Проверить обновления</string>
-  <string name="settings_crash_reporting">Слать отчеты об ошибках</string>
-  <string name="settings_crash_reporting_description">
-\"Ошибки в работе Clover собираются в отчет и отправляются разработчику.
-Данные отчеты не собирают личную информацию о пользователе.\"
-    </string>
-  <string name="settings_crash_reporting_toggle_notice">Настройка будет применена при следующем запуске приложения.</string>
   <string name="settings_about_license">Выпущен под лицензией GNU GPLv3</string>
   <string name="settings_about_license_description">Нажмите, чтобы увидеть лицензию</string>
   <string name="settings_about_licenses">Open Source лицензии</string>

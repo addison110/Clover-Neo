@@ -97,6 +97,12 @@ public class SavingNotification extends Service {
         return START_STICKY;
     }
 
+    @Override
+    public void onTimeout(int startId, int fgsType) {
+        // Android 15+ limits how long a dataSync foreground service may run.
+        stopSelf();
+    }
+
     @TargetApi(Build.VERSION_CODES.O)
     public void ensureChannels() {
         NotificationChannel normalChannel = new NotificationChannel(
@@ -119,7 +125,7 @@ public class SavingNotification extends Service {
         intent.putExtra(CANCEL_KEY, true);
         PendingIntent pendingIntent = PendingIntent.getService(
                 this, 0,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         builder.setContentIntent(pendingIntent);
 
         return builder.build();

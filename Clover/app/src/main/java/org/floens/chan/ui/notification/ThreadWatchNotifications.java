@@ -167,7 +167,7 @@ public class ThreadWatchNotifications extends NotificationHelper {
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 applicationContext, ++pendingIntentCounter,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         builder.setContentIntent(pendingIntent);
     }

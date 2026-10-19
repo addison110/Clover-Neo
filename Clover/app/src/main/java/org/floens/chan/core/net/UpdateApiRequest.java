@@ -17,151 +17,131 @@
  */
 package org.floens.chan.core.net;
 
-
+import android.text.TextUtils;
 import android.util.JsonReader;
+import android.util.JsonToken;
 
 import com.android.volley.Response;
 
 import org.floens.chan.BuildConfig;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.HttpUrl;
 
+/**
+ * Reads the latest release of the GitHub repository at {@link BuildConfig#UPDATE_API_ENDPOINT}.
+ * The release tag is the version name (e.g. v3.1.0) and the first attached .apk is the update.
+ */
 public class UpdateApiRequest extends JsonReaderRequest<UpdateApiRequest.UpdateApiResponse> {
     public static final String TYPE_UPDATE = "update";
 
-    private static final int API_VERSION = 1;
-
-    private String forFlavor;
+    private static final Pattern VERSION_TAG = Pattern.compile("^v?(\\d+)\\.(\\d+)(?:\\.(\\d+))?");
 
     public UpdateApiRequest(Response.Listener<UpdateApiResponse> listener,
                             Response.ErrorListener errorListener) {
         super(BuildConfig.UPDATE_API_ENDPOINT, listener, errorListener);
-        forFlavor = BuildConfig.FLAVOR;
     }
 
     @Override
     public UpdateApiResponse readJson(JsonReader reader) throws Exception {
+        UpdateApiMessage message = new UpdateApiMessage();
+        message.type = TYPE_UPDATE;
+        String tag = "";
+        String body = "";
+
         reader.beginObject();
-
-        UpdateApiResponse response = new UpdateApiResponse();
-
-        int apiVersion;
-        out:
         while (reader.hasNext()) {
             switch (reader.nextName()) {
-                case "api_version":
-                    apiVersion = reader.nextInt();
-
-                    if (apiVersion > API_VERSION) {
-                        response.newerApiVersion = true;
-
-                        while (reader.hasNext()) reader.skipValue();
-
-                        break out;
-                    }
-
+                case "tag_name":
+                    tag = reader.nextString();
+                    message.code = versionCodeFromTag(tag);
                     break;
-                case "messages":
+                case "body":
+                    body = readNullableString(reader);
+                    break;
+                case "assets":
                     reader.beginArray();
                     while (reader.hasNext()) {
-                        response.messages.add(readMessage(reader));
+                        HttpUrl apkUrl = readApkAsset(reader);
+                        if (message.apkUrl == null) {
+                            message.apkUrl = apkUrl;
+                        }
                     }
                     reader.endArray();
                     break;
-                case "check_interval":
-                    response.checkIntervalMs = reader.nextLong();
-                    break;
                 default:
                     reader.skipValue();
                     break;
             }
         }
-
         reader.endObject();
 
+        message.messageHtml = "<h3>" + TextUtils.htmlEncode(tag) + "</h3>" +
+                TextUtils.htmlEncode(body).replace("\n", "<br>");
+
+        UpdateApiResponse response = new UpdateApiResponse();
+        response.messages.add(message);
         return response;
     }
 
-    private UpdateApiMessage readMessage(JsonReader reader) throws IOException {
+    /**
+     * Converts a tag like v3.1.0 to the versionCode format XXYYZZ, 0 if it is not a version.
+     */
+    public static int versionCodeFromTag(String tag) {
+        Matcher matcher = VERSION_TAG.matcher(tag);
+        if (!matcher.find()) {
+            return 0;
+        }
+
+        int major = Integer.parseInt(matcher.group(1));
+        int minor = Integer.parseInt(matcher.group(2));
+        int patch = matcher.group(3) != null ? Integer.parseInt(matcher.group(3)) : 0;
+        return major * 10000 + minor * 100 + patch;
+    }
+
+    private HttpUrl readApkAsset(JsonReader reader) throws IOException {
+        String name = "";
+        String url = null;
+
         reader.beginObject();
-
-        UpdateApiMessage message = new UpdateApiMessage();
-
         while (reader.hasNext()) {
             switch (reader.nextName()) {
-                case "type":
-                    message.type = reader.nextString();
+                case "name":
+                    name = reader.nextString();
                     break;
-                case "code":
-                    message.code = reader.nextInt();
-                    break;
-                case "hash":
-                    message.hash = reader.nextString();
-                    break;
-                case "date":
-                    DateFormat format = new SimpleDateFormat(
-                            "yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-                    try {
-                        message.date = format.parse(reader.nextString());
-                    } catch (ParseException ignore) {
-                    }
-                    break;
-                case "message_html":
-                    message.messageHtml = reader.nextString();
-                    break;
-                case "apk":
-                    reader.beginObject();
-                    while (reader.hasNext()) {
-                        if (reader.nextName().equals(forFlavor)) {
-                            reader.beginObject();
-                            while (reader.hasNext()) {
-                                switch (reader.nextName()) {
-                                    case "url":
-                                        message.apkUrl = HttpUrl.parse(reader.nextString());
-                                        break;
-                                    default:
-                                        reader.skipValue();
-                                        break;
-                                }
-                            }
-                            reader.endObject();
-                        } else {
-                            reader.skipValue();
-                        }
-                    }
-                    reader.endObject();
+                case "browser_download_url":
+                    url = reader.nextString();
                     break;
                 default:
                     reader.skipValue();
                     break;
             }
         }
-
         reader.endObject();
 
-        return message;
+        return name.endsWith(".apk") && url != null ? HttpUrl.parse(url) : null;
+    }
+
+    private String readNullableString(JsonReader reader) throws IOException {
+        if (reader.peek() == JsonToken.NULL) {
+            reader.nextNull();
+            return "";
+        }
+        return reader.nextString();
     }
 
     public static class UpdateApiResponse {
-        public boolean newerApiVersion;
         public List<UpdateApiMessage> messages = new ArrayList<>();
-        public long checkIntervalMs;
     }
 
     public static class UpdateApiMessage {
         public String type;
         public int code;
-        public String hash;
-        public Date date;
         public String messageHtml;
         public HttpUrl apkUrl;
     }

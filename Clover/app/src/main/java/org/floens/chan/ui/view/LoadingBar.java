@@ -23,7 +23,6 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
-import org.floens.chan.R;
 import org.floens.chan.utils.AndroidUtils;
 
 public class LoadingBar extends View {
@@ -74,6 +73,6 @@ public class LoadingBar extends View {
 
     private void init() {
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(AndroidUtils.getAttrColor(getContext(), R.attr.colorAccent));
+        paint.setColor(AndroidUtils.getAttrColor(getContext(), androidx.appcompat.R.attr.colorAccent));
     }
 }

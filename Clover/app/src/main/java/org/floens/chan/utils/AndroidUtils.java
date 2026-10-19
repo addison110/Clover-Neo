@@ -458,8 +458,8 @@ public class AndroidUtils {
     }
 
     public static void fixSnackbarText(Context context, Snackbar snackbar) {
-        ((TextView) snackbar.getView().findViewById(R.id.snackbar_text)).setTextColor(0xffffffff);
-        snackbar.setActionTextColor(getAttrColor(context, R.attr.colorAccent));
+        ((TextView) snackbar.getView().findViewById(com.google.android.material.R.id.snackbar_text)).setTextColor(0xffffffff);
+        snackbar.setActionTextColor(getAttrColor(context, androidx.appcompat.R.attr.colorAccent));
     }
 
     public static ConnectivityManager getConnectivityManager() {

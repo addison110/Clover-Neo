@@ -19,7 +19,6 @@ package org.floens.chan.core.settings;
 
 import android.text.TextUtils;
 
-import org.floens.chan.BuildConfig;
 import org.floens.chan.R;
 import org.floens.chan.core.manager.WatchManager;
 import org.floens.chan.core.update.UpdateManager;
@@ -159,7 +158,6 @@ public class ChanSettings {
     public static final LongSetting updateCheckTime;
     public static final LongSetting updateCheckInterval;
 
-    public static final BooleanSetting crashReporting;
     public static final BooleanSetting useNewCaptchaWindow;
 
     static {
@@ -250,7 +248,6 @@ public class ChanSettings {
         updateCheckTime = new LongSetting(p, "update_check_time", 0L);
         updateCheckInterval = new LongSetting(p, "update_check_interval", UpdateManager.DEFAULT_UPDATE_CHECK_INTERVAL_MS);
 
-        crashReporting = new BooleanSetting(p, "preference_crash_reporting", true);
         useNewCaptchaWindow = new BooleanSetting(p, "use_new_captcha_window", true);
 
         // Old (but possibly still in some users phone)
@@ -260,17 +257,9 @@ public class ChanSettings {
         // preference_autoplay false
         // preference_watch_background_timeout "60" the old timeout background setting in minutes
         // preference_network_https true
+        // preference_crash_reporting true
         // counter_settings_open
         // counter_reply_open
-    }
-
-    public static boolean isCrashReportingAvailable() {
-        //noinspection ConstantConditions
-        return !BuildConfig.CRASH_REPORT_TOKEN.isEmpty();
-    }
-
-    public static boolean isCrashReportingEnabled() {
-        return isCrashReportingAvailable() && crashReporting.get();
     }
 
     public static ThemeColor getThemeAndColor() {

@@ -25,6 +25,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.WorkerThread;
 
 import org.floens.chan.core.settings.ChanSettings;
+import org.floens.chan.utils.IOUtils;
 import org.floens.chan.utils.Logger;
 
 import java.io.Closeable;
@@ -41,7 +42,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import okhttp3.internal.Util;
 import okio.Buffer;
 import okio.BufferedSink;
 import okio.Okio;
@@ -211,15 +211,15 @@ public class FileCacheDownloader implements Runnable {
                 callback.downloaderFinished(this);
             });
         } finally {
-            Util.closeQuietly(sourceCloseable);
-            Util.closeQuietly(sinkCloseable);
+            IOUtils.closeQuietly(sourceCloseable);
+            IOUtils.closeQuietly(sinkCloseable);
 
             if (call != null) {
                 call.cancel();
             }
 
             if (body != null) {
-                Util.closeQuietly(body);
+                IOUtils.closeQuietly(body);
             }
         }
     }
@@ -276,11 +276,11 @@ public class FileCacheDownloader implements Runnable {
             checkCancel();
         }
 
-        Util.closeQuietly(source);
-        Util.closeQuietly(sink);
+        IOUtils.closeQuietly(source);
+        IOUtils.closeQuietly(sink);
 
         call = null;
-        Util.closeQuietly(body);
+        IOUtils.closeQuietly(body);
         body = null;
     }
 

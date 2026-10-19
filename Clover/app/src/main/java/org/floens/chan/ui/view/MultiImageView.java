@@ -38,29 +38,23 @@ import android.widget.VideoView;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Player;
+import androidx.media3.common.Tracks;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.ImageLoader.ImageContainer;
 import com.davemorrissey.labs.subscaleview.ImageSource;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.audio.AudioListener;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.util.Util;
 
 import org.floens.chan.R;
 import org.floens.chan.core.cache.FileCache;
 import org.floens.chan.core.cache.FileCacheDownloader;
 import org.floens.chan.core.cache.FileCacheListener;
 import org.floens.chan.core.cache.FileCacheProvider;
-import org.floens.chan.core.di.UserAgentProvider;
 import org.floens.chan.core.model.PostImage;
 import org.floens.chan.core.settings.ChanSettings;
 import org.floens.chan.ui.activity.StartActivity;
@@ -77,7 +71,7 @@ import pl.droidsonroids.gif.GifImageView;
 
 import static org.floens.chan.Chan.inject;
 
-public class MultiImageView extends FrameLayout implements View.OnClickListener, LifecycleObserver, AudioListener {
+public class MultiImageView extends FrameLayout implements View.OnClickListener, LifecycleObserver, Player.Listener {
     public enum Mode {
         UNLOADED, LOWRES, BIGIMAGE, GIF, MOVIE, OTHER
     }
@@ -91,9 +85,6 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
 
     @Inject
     ImageLoader imageLoader;
-
-    @Inject
-    UserAgentProvider userAgent;
 
     private ImageView playView;
 
@@ -111,7 +102,7 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
     private PlayerView exoVideoView;
     private boolean videoError = false;
     private MediaPlayer mediaPlayer;
-    private SimpleExoPlayer exoPlayer;
+    private ExoPlayer exoPlayer;
 
     private boolean backgroundToggle;
 
@@ -218,10 +209,7 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
     public void setVolume(boolean muted) {
         final float volume = muted ? 0f : 1f;
         if (exoPlayer != null) {
-            Player.AudioComponent audioComponent = exoPlayer.getAudioComponent();
-            if (audioComponent != null) {
-                audioComponent.setVolume(volume);
-            }
+            exoPlayer.setVolume(volume);
         } else if (mediaPlayer != null) {
             mediaPlayer.setVolume(volume, volume);
         }
@@ -461,18 +449,15 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
             onModeLoaded(Mode.MOVIE, videoView);
         } else if (ChanSettings.videoUseExoplayer.get()) {
             exoVideoView = new PlayerView(getContext());
-            exoPlayer = ExoPlayerFactory.newSimpleInstance(getContext());
+            exoPlayer = new ExoPlayer.Builder(getContext()).build();
             exoVideoView.setPlayer(exoPlayer);
-            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(getContext(),
-                    Util.getUserAgent(getContext(), userAgent.getUserAgent()));
-            MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(android.net.Uri.fromFile(file));
 
             exoPlayer.setRepeatMode(ChanSettings.videoAutoLoop.get() ?
                     Player.REPEAT_MODE_ALL : Player.REPEAT_MODE_OFF);
 
-            exoPlayer.prepare(videoSource);
-            exoPlayer.addAudioListener(this);
+            exoPlayer.setMediaItem(MediaItem.fromUri(android.net.Uri.fromFile(file)));
+            exoPlayer.addListener(this);
+            exoPlayer.prepare();
 
             addView(exoVideoView);
             exoPlayer.setPlayWhenReady(true);
@@ -520,12 +505,10 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
     }
 
     @Override
-    public void onAudioSessionId(int audioSessionId) {
-        if (exoPlayer.getAudioFormat() == null) {
-            return;
+    public void onTracksChanged(Tracks tracks) {
+        if (tracks.containsType(C.TRACK_TYPE_AUDIO)) {
+            callback.onAudioLoaded(this);
         }
-
-        callback.onAudioLoaded(this);
     }
 
     private boolean hasMediaPlayerAudioTracks(MediaPlayer mediaPlayer) {
@@ -548,10 +531,6 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
             // Return a default value.
             return true;
         }
-    }
-
-    private boolean hasMediaPlayerAudioTracks(ExoPlayer mediaPlayer) {
-        return mediaPlayer.getAudioComponent() != null;
     }
 
     private void onVideoError() {

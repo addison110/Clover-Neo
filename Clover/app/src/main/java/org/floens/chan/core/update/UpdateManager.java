@@ -18,9 +18,6 @@
 package org.floens.chan.core.update;
 
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
-import android.os.StrictMode;
 import android.text.TextUtils;
 
 import com.android.volley.RequestQueue;
@@ -28,14 +25,13 @@ import com.android.volley.RequestQueue;
 import org.floens.chan.BuildConfig;
 import org.floens.chan.core.cache.FileCache;
 import org.floens.chan.core.cache.FileCacheListener;
+import org.floens.chan.core.cache.FileCacheProvider;
 import org.floens.chan.core.net.UpdateApiRequest;
 import org.floens.chan.core.settings.ChanSettings;
-import org.floens.chan.utils.IOUtils;
 import org.floens.chan.utils.Logger;
 import org.floens.chan.utils.Time;
 
 import java.io.File;
-import java.io.IOException;
 
 import javax.inject.Inject;
 
@@ -45,15 +41,13 @@ import static org.floens.chan.Chan.inject;
 
 /**
  * Calls the update API and downloads and requests installs of APK files.
- * <p>The APK files are downloaded to the public Download directory, and the default APK install
+ * <p>The APK files are downloaded to the file cache, and the default APK install
  * screen is launched after downloading.
  */
 public class UpdateManager {
     public static final long DEFAULT_UPDATE_CHECK_INTERVAL_MS = 1000 * 60 * 60 * 24 * 5; // 5 days
 
     private static final String TAG = "UpdateManager";
-
-    private static final String DOWNLOAD_FILE = "Clover_update.apk";
 
     @Inject
     RequestQueue volleyRequestQueue;
@@ -100,18 +94,6 @@ public class UpdateManager {
     }
 
     private boolean processUpdateApiResponse(UpdateApiRequest.UpdateApiResponse response) {
-        if (response.newerApiVersion) {
-            Logger.e(TAG, "API endpoint reports a higher API version than we support, " +
-                    "aborting update check.");
-
-            // ignore
-            return false;
-        }
-
-        if (response.checkIntervalMs != 0) {
-            ChanSettings.updateCheckInterval.set(response.checkIntervalMs);
-        }
-
         for (UpdateApiRequest.UpdateApiMessage message : response.messages) {
             if (processUpdateMessage(message)) {
                 return true;
@@ -150,16 +132,14 @@ public class UpdateManager {
             } else {
                 return true;
             }
-        } else if (message.hash != null) {
-            return !message.hash.equals(BuildConfig.BUILD_HASH);
         } else {
-            Logger.w(TAG, "No code or hash found");
+            Logger.w(TAG, "No version code found");
             return false;
         }
     }
 
     /**
-     * Install the APK file specified in {@code update}. This methods needs the storage permission.
+     * Install the APK file specified in {@code update}.
      *
      * @param update update with apk details.
      */
@@ -173,7 +153,7 @@ public class UpdateManager {
             @Override
             public void onSuccess(File file) {
                 callback.onUpdateDownloadSuccess();
-                copyToPublicDirectory(file);
+                installApk(new Install(file));
             }
 
             @Override
@@ -192,39 +172,17 @@ public class UpdateManager {
         installApk(install);
     }
 
-    private void copyToPublicDirectory(File cacheFile) {
-        File out = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS),
-                DOWNLOAD_FILE);
-        try {
-            IOUtils.copyFile(cacheFile, out);
-        } catch (IOException e) {
-            Logger.e(TAG, "requestApkInstall", e);
-            callback.onUpdateDownloadMoveFailed();
-            return;
-        }
-        installApk(new Install(out));
-    }
-
     private void installApk(Install install) {
         // First open the dialog that asks to retry and calls this method again.
         callback.openUpdateRetryDialog(install);
 
         // Then launch the APK install intent.
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.setDataAndType(Uri.fromFile(install.installFile),
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setDataAndType(FileCacheProvider.getUriForFile(install.installFile),
                 "application/vnd.android.package-archive");
 
-        // The installer wants a content scheme from android N and up,
-        // but I don't feel like implementing a content provider just for this feature.
-        // Temporary change the strictmode policy while starting the intent.
-        StrictMode.VmPolicy vmPolicy = StrictMode.getVmPolicy();
-        StrictMode.setVmPolicy(StrictMode.VmPolicy.LAX);
-
         callback.onUpdateOpenInstallScreen(intent);
-
-        StrictMode.setVmPolicy(vmPolicy);
     }
 
     public static class Update {
@@ -255,8 +213,6 @@ public class UpdateManager {
         void onUpdateDownloadSuccess();
 
         void onUpdateDownloadFailed();
-
-        void onUpdateDownloadMoveFailed();
 
         void onUpdateOpenInstallScreen(Intent intent);
 

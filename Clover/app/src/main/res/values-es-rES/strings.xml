@@ -33,14 +33,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="update_install">Instalar</string>
     <string name="update_install_downloading">Descargando actualización</string>
     <string name="update_install_download_failed">Fallo en la descarga</string>
-    <string name="update_install_download_move_failed">No se pudo mover el archivo descargado a la carpeta de descarga.</string>
     <string name="update_retry_title">Reintentar actualización</string>
     <string name="update_retry">Clover no se ha actualizado todavía. Presione \"Reintentar\" para volver a intentar la instalación.</string>
     <string name="update_retry_button">Reintentar</string>
-    <string name="update_storage_permission_required_title">Permiso de almacenamiento requerido</string>
-    <string name="update_storage_permission_required">El perimiso para acceder almacenamiento es requerido para instalar la actualización
-
-Rehablita este permiso en la configuracion de la app si lo desailitaste permanentementes</string>
     <plurals name="minutes">
         <item quantity="one">%d minuto</item>
         <item quantity="other">%d minuto</item>
@@ -353,11 +348,6 @@ Active \"Reproducir videos con reproductor externo\" En las configuraciones"</st
     <!-- Main About group -->
     <string name="settings_group_about">Acerca de</string>
     <string name="settings_update_check">Buscar actualizaciones</string>
-    <string name="settings_crash_reporting">Informe de accidentes</string>
-    <string name="settings_crash_reporting_description">
-"El reporte de crash crea reportes cuando algo mal pasa en Clover.
-Los reportes de crash no recolectan información personal."</string>
-    <string name="settings_crash_reporting_toggle_notice">La configuración se aplicara la próxima vez que la app inicie.</string>
     <string name="settings_about_license">Lanzado bajo la licencia GNU GPLv3</string>
     <string name="settings_about_license_description">Presione para ver licencia</string>
     <string name="settings_about_licenses">Licencias de código abierto</string>

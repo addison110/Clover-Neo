@@ -18,10 +18,6 @@
 package org.floens.chan.ui.controller;
 
 import android.content.Context;
-import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
-import android.nfc.NfcAdapter;
-import android.nfc.NfcEvent;
 
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -43,7 +39,6 @@ import org.floens.chan.ui.layout.ThreadLayout;
 import org.floens.chan.ui.toolbar.Toolbar;
 import org.floens.chan.ui.view.ThumbnailView;
 import org.floens.chan.utils.AndroidUtils;
-import org.floens.chan.utils.Logger;
 
 import java.util.List;
 
@@ -56,9 +51,7 @@ public abstract class ThreadController extends Controller implements
         ImageViewerController.ImageViewerCallback,
         SwipeRefreshLayout.OnRefreshListener,
         ToolbarNavigationController.ToolbarSearchCallback,
-        NfcAdapter.CreateNdefMessageCallback,
         ThreadSlideController.SlideChangeListener {
-    private static final String TAG = "ThreadController";
 
     protected ThreadLayout threadLayout;
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -143,29 +136,6 @@ public abstract class ThreadController extends Controller implements
     @Override
     public void onRefresh() {
         threadLayout.refreshFromSwipe();
-    }
-
-    @Override
-    public NdefMessage createNdefMessage(NfcEvent event) {
-        Loadable loadable = getLoadable();
-        String url = null;
-        NdefMessage message = null;
-
-        if (loadable != null) {
-            url = loadable.site.resolvable().desktopUrl(loadable, null);
-        }
-
-        if (url != null) {
-            try {
-                Logger.d(TAG, "Pushing url " + url + " to android beam");
-                NdefRecord record = NdefRecord.createUri(url);
-                message = new NdefMessage(new NdefRecord[]{record});
-            } catch (IllegalArgumentException e) {
-                Logger.e(TAG, "NdefMessage create error", e);
-            }
-        }
-
-        return message;
     }
 
     public void presentRepliesController(Controller controller) {

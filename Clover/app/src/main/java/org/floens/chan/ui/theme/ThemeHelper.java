@@ -21,9 +21,18 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.view.View;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
 import androidx.annotation.AnyThread;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import org.floens.chan.R;
 import org.floens.chan.core.settings.ChanSettings;
@@ -113,17 +122,37 @@ public class ThemeHelper {
         return themes;
     }
 
-    public void setupContext(Activity context) {
+    public void setupContext(ComponentActivity context) {
         updateCurrentTheme();
         context.setTheme(theme.resValue);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            context.getWindow().setStatusBarColor(theme.primaryColor.dark);
-            context.getWindow().setNavigationBarColor(0xff000000);
+        // Draw behind the system bars on all versions, Android 15 enforces this anyway.
+        // The content view is padded with the insets of the system bars and the keyboard,
+        // its background is what shows behind the status bar.
+        EdgeToEdge.enable(context,
+                SystemBarStyle.dark(Color.TRANSPARENT),
+                SystemBarStyle.dark(Color.BLACK));
+        View contentView = context.findViewById(android.R.id.content);
+        ViewCompat.setOnApplyWindowInsetsListener(contentView, (view, windowInsets) -> {
+            Insets bars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            Insets ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+            view.setPadding(bars.left, bars.top, bars.right, Math.max(bars.bottom, ime.bottom));
+            return WindowInsetsCompat.CONSUMED;
+        });
+        setStatusBarColor(context, theme.primaryColor.dark);
 
-            Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_task_description);
-            context.setTaskDescription(new ActivityManager.TaskDescription(null, icon, theme.primaryColor.color));
-        }
+        Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_task_description);
+        context.setTaskDescription(new ActivityManager.TaskDescription(null, icon, theme.primaryColor.color));
+    }
+
+    public static int getStatusBarColor(Activity activity) {
+        Drawable background = activity.findViewById(android.R.id.content).getBackground();
+        return background instanceof ColorDrawable ? ((ColorDrawable) background).getColor() : 0;
+    }
+
+    public static void setStatusBarColor(Activity activity, int color) {
+        activity.findViewById(android.R.id.content).setBackgroundColor(color);
     }
 
     public PrimaryColor getColor(String name, PrimaryColor defaultColor) {

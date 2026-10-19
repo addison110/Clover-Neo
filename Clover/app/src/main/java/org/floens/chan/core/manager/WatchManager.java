@@ -577,7 +577,7 @@ public class WatchManager {
     private void scheduleAlarmManager(boolean enable) {
         Intent intent = new Intent(WATCHER_UPDATE_ACTION);
         intent.setClass(getAppContext(), WatchUpdateReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getAppContext(), REQUEST_CODE_WATCH_UPDATE, intent, 0);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getAppContext(), REQUEST_CODE_WATCH_UPDATE, intent, PendingIntent.FLAG_IMMUTABLE);
         if (enable) {
             int interval = getBackgroundIntervalSetting();
             Logger.d(TAG, "Scheduled for an inexact repeating broadcast receiver with an interval of " + (interval / 1000 / 60) + " minutes");

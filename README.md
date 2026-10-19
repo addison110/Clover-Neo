@@ -1,30 +1,40 @@
-# Clover - imageboard browser for Android  
+# Clover Neo - imageboard browser for Android
 
-[![Build Status](https://travis-ci.org/Floens/Clover.svg?branch=dev)](https://travis-ci.org/Floens/Clover)
-[![Crowdin](https://d322cqt584bo4o.cloudfront.net/clover/localized.svg)](https://crowdin.com/project/clover)
+[![Build](https://github.com/addison110/Clover-Neo/actions/workflows/build.yml/badge.svg)](https://github.com/addison110/Clover-Neo/actions/workflows/build.yml)
 
-[Website](http://chandevel.github.io/Clover/)  
-[APK releases](https://chandevel.github.io/Clover/#releases) | [Development APK releases](https://chandevel.github.io/Clover/#dev) | [F-Droid](https://chandevel.github.io/Clover/#fdroid)  
-[Donate](https://chandevel.github.io/Clover/#donate)  
+[Releases](https://github.com/addison110/Clover-Neo/releases) | [Issues](https://github.com/addison110/Clover-Neo/issues)
 
-Clover is a fast Android app for browsing imageboards, such as 4chan and 8chan. It adds inline replying, thread watching, notifications, themes, pass support, filters and a whole lot more. Clover is licensed under the GPL and will always be free.
+Clover Neo is a maintained fork of [Clover](https://github.com/Floens/Clover), a fast Android app for browsing imageboards such as 4chan and 8chan. It adds inline replying, thread watching, notifications, themes, pass support, filters and a whole lot more. Clover Neo is licensed under the GPL and will always be free.
+
+Clover Neo installs as its own app (`io.github.addison110.cloverneo`) and can be installed next to the original Clover. Settings, bookmarks and history are not carried over from Clover.
+
+Requires Android 6.0 or newer.
 
 ## Issues and features
-Issues can be reported at one of the contact places noted above or here at the [Issues page](https://github.com/chandevel/Clover/issues). Please search before reporting an issue to avoid duplicates!    
+Issues can be reported on the [Issues page](https://github.com/addison110/Clover-Neo/issues). Please search before reporting an issue to avoid duplicates!
 
+## Building
+You need JDK 17 or newer and the Android SDK (set `ANDROID_HOME` or `sdk.dir` in `Clover/local.properties`).
 
-## Contributing
-For first-time contributors, the issues with the label [good first issue](https://github.com/chandevel/Clover/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are a great place to start.  
+```sh
+cd Clover
+./gradlew assembleDefaultDebug    # debug APK in app/build/outputs/apk/default/debug/
+./gradlew check                   # checkstyle, lint and unit tests
+```
 
-See the [Clover setup guide](https://github.com/chandevel/Clover/wiki/Building-Clover) for a guide on building Clover.  
+The build flavors are `default` (updates itself from GitHub releases), `dev` and `fdroid` (no in-app updater).
 
-We have a special guide for [making new themes.](https://github.com/chandevel/Clover/wiki/Adding-a-new-theme)
+To sign release builds, create `Clover/app/keys.properties`, see `Clover/app/build.gradle`.
 
+## Releasing
+The in-app updater of the `default` flavor reads the latest GitHub release of this repository.
+
+1. Bump `versionName` and `versionCode` in `Clover/app/build.gradle` (`versionCode` is XXYYZZ for vXX.YY.ZZ).
+2. Build and sign the release APK: `./gradlew assembleDefaultRelease`.
+3. Create a GitHub release with a tag matching `versionName` (e.g. `v3.1.0`) and attach the APK. The release notes are shown in the update dialog.
 
 ## Translations
-We use crowdin for crowdsourcing translations of the English strings to other languages.  
-[Help us with translating at crowdin.com here](https://crowdin.com/project/clover)  
-
+Translations live in `Clover/app/src/main/res/values-*/strings.xml`. Pull requests with new or updated translations are welcome.
 
 ## License
-Clover is [GPLv3](https://github.com/chandevel/Clover/blob/master/COPYING.txt), [licenses of the used libraries](https://github.com/chandevel/Clover/blob/dev/Clover/app/src/main/assets/html/licenses.html).
+Clover Neo is [GPLv3](COPYING.txt), [licenses of the used libraries](Clover/app/src/main/assets/html/licenses.html).

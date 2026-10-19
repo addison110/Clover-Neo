@@ -71,12 +71,31 @@ tap() {
     return 1
 }
 
+# type_keys TEXT: types lowercase letters, digits and dots as key events, for keyboards where
+# "input text" doesn't arrive (seen on Android 6.0)
+type_keys() {
+    local c i
+    for ((i = 0; i < ${#1}; i++)); do
+        c=${1:i:1}
+        case $c in
+            [a-z]) adb shell input keyevent "KEYCODE_$(echo "$c" | tr a-z A-Z)" ;;
+            [0-9]) adb shell input keyevent "KEYCODE_$c" ;;
+            .) adb shell input keyevent KEYCODE_PERIOD ;;
+        esac
+    done
+}
+
 # type_into RESOURCE_ID_REGEX TEXT: types into a text field, retrying when the keyboard ate characters
 type_into() {
     tap resource-id "$1" || return 1
-    for _ in 1 2 3; do
+    local attempt
+    for attempt in 1 2 3; do
         sleep 2
-        adb shell input text "$2"
+        if [ "$attempt" = 1 ]; then
+            adb shell input text "$2"
+        else
+            type_keys "$2"
+        fi
         sleep 1
         dump
         if python3 "$HERE/ui.py" "$OUT/current.xml" text "^$2\$" > /dev/null; then

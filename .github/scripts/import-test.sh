@@ -29,7 +29,7 @@ use_app "$CLOVER_PKG"
 
 fail() {
     log "FAIL: $*"
-    check_crashes "$CLOVER_PKG" "$NEO_PKG"
+    check_crashes "$NEO_PKG"
     exit 1
 }
 
@@ -43,10 +43,18 @@ adb install --bypass-low-target-sdk-block "$OUT/clover.apk" > /dev/null 2>&1 ||
     adb install "$OUT/clover.apk" > /dev/null || fail "could not install Clover"
 adb logcat -c
 
-adb shell am start -W -n "$ACTIVITY" > /dev/null
-shot clover-launch 5
-# "This app was built for an older version of Android"
-tap text '^ok$' && shot clover-old-app-warning
+# Clover 3.0.2 sometimes crashes on its first start, when its hint popup comes up before the
+# window is ready. Start it again when it does.
+for attempt in 1 2 3; do
+    adb shell am start -W -n "$ACTIVITY" > /dev/null
+    shot clover-launch 5
+    # "This app was built for an older version of Android"
+    tap text '^ok$' && shot clover-old-app-warning
+    sleep 5
+    alive && break
+    log "Clover crashed on start, attempt $attempt"
+    dump
+done
 setup_4chan
 shot clover-browse 5
 
@@ -111,4 +119,5 @@ fi
 open_drawer
 shot neo-drawer-after-import
 
-check_crashes "$CLOVER_PKG" "$NEO_PKG" && log "PASS: the import works"
+# Only Clover Neo is under test, Clover's own crashes are in crash.txt
+check_crashes "$NEO_PKG" && log "PASS: the import works"

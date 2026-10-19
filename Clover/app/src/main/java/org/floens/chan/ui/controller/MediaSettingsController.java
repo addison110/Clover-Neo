@@ -211,6 +211,18 @@ public class MediaSettingsController extends SettingsController implements
                 videoAutoLoadTypes);
         loading.add(videoAutoLoadView);
 
+        List<ListSettingView.Item> preloadCounts = new ArrayList<>();
+        for (int count : new int[]{0, 1, 2, 3, 5, 10}) {
+            String name = count == 0 ?
+                    getString(R.string.setting_media_preload_off) :
+                    context.getResources().getQuantityString(
+                            R.plurals.setting_media_preload_count, count, count);
+            preloadCounts.add(new ListSettingView.Item<>(name, count));
+        }
+        loading.add(new ListSettingView<>(this,
+                ChanSettings.mediaPreloadCount, R.string.setting_media_preload,
+                preloadCounts));
+
         updateVideoLoadModes();
     }
 

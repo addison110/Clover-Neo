@@ -25,6 +25,22 @@ log() {
 dump() {
     adb shell uiautomator dump /sdcard/ui.xml > /dev/null 2>&1
     adb pull /sdcard/ui.xml "$OUT/current.xml" > /dev/null 2>&1
+    dismiss_crash_dialog
+}
+
+# A crash dialog blocks every following step, close it. The crash itself fails the test at the end.
+dismiss_crash_dialog() {
+    local pos
+    if python3 "$HERE/ui.py" "$OUT/current.xml" text 'has stopped|keeps stopping|isn.t responding' > /dev/null; then
+        adb exec-out screencap -p > "$OUT/crash-dialog-$step.png"
+        log "CRASH DIALOG after step $step"
+        if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" text '^(ok|close app)$'); then
+            adb shell input tap $pos
+            sleep 1
+            adb shell uiautomator dump /sdcard/ui.xml > /dev/null 2>&1
+            adb pull /sdcard/ui.xml "$OUT/current.xml" > /dev/null 2>&1
+        fi
+    fi
 }
 
 # shot NAME [WAIT_SECONDS]
@@ -52,6 +68,26 @@ tap() {
         sleep 1
     done
     log "NOT FOUND $1=$2"
+    return 1
+}
+
+# type_into RESOURCE_ID_REGEX TEXT: types into a text field, retrying when the keyboard ate characters
+type_into() {
+    tap resource-id "$1" || return 1
+    for _ in 1 2 3; do
+        sleep 2
+        adb shell input text "$2"
+        sleep 1
+        dump
+        if python3 "$HERE/ui.py" "$OUT/current.xml" text "^$2\$" > /dev/null; then
+            log "typed $2"
+            return 0
+        fi
+        # Clear the field and try again
+        adb shell input keyevent KEYCODE_MOVE_END
+        for _ in $(seq 30); do adb shell input keyevent KEYCODE_DEL; done
+    done
+    log "NOT TYPED $2"
     return 1
 }
 
@@ -96,7 +132,7 @@ adb shell input swipe 2 $((HEIGHT / 2)) $((WIDTH * 3 / 4)) $((HEIGHT / 2)) 300
 shot drawer
 tap text '^Setup sites$' && shot sites-setup
 tap resource-id ':id/add$' && shot add-site-dialog
-tap resource-id ':id/url$' && adb shell input text 4chan.org
+type_into ':id/url$' 4chan.org
 tap text '^add$' && shot site-added 4
 tap text '^4chan$' && shot site-configure
 tap text '^Setup boards$' && shot board-setup
@@ -117,7 +153,7 @@ if [ -n "$THREAD" ]; then
     # Reply box with the keyboard, the text is typed but never posted
     if tap resource-id ':id/reply_button$'; then
         shot reply-open 3
-        tap resource-id ':id/comment$' && adb shell input text 'smoke'
+        type_into ':id/comment$' smoke
         shot reply-keyboard 3
         back
         back
@@ -170,7 +206,7 @@ if grep -q "ANR in $PKG" "$OUT/logcat.txt"; then
     log "FAIL: the app stopped responding, see logcat.txt"
     failed=1
 fi
-if grep -q '^NOT FOUND' "$STEPS"; then
+if grep -q '^NOT \(FOUND\|TYPED\)' "$STEPS"; then
     log "WARNING: some steps were skipped, see the screenshots"
 fi
 [ "$failed" = 0 ] && log "PASS: no crashes"

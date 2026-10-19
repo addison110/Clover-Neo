@@ -98,6 +98,7 @@ public class ChanSettings {
     //    public static final BooleanSetting imageAutoLoad;
     public static final OptionsSetting<MediaAutoLoadMode> imageAutoLoadNetwork;
     public static final OptionsSetting<MediaAutoLoadMode> videoAutoLoadNetwork;
+    public static final IntegerSetting mediaPreloadCount;
     public static final BooleanSetting videoOpenExternal;
     public static final BooleanSetting videoUseExoplayer;
     public static final BooleanSetting textOnly;
@@ -179,6 +180,7 @@ public class ChanSettings {
 //        imageAutoLoad = new BooleanSetting(p, "preference_image_auto_load", true);
         imageAutoLoadNetwork = new OptionsSetting<>(p, "preference_image_auto_load_network", MediaAutoLoadMode.class, MediaAutoLoadMode.WIFI);
         videoAutoLoadNetwork = new OptionsSetting<>(p, "preference_video_auto_load_network", MediaAutoLoadMode.class, MediaAutoLoadMode.WIFI);
+        mediaPreloadCount = new IntegerSetting(p, "preference_media_preload_count", 1);
         videoOpenExternal = new BooleanSetting(p, "preference_video_external", false);
         videoUseExoplayer = new BooleanSetting(p, "preference_video_exoplayer", true);
         textOnly = new BooleanSetting(p, "preference_text_only", false);

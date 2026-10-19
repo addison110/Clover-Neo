@@ -70,7 +70,8 @@ public class ThreadSlideController extends Controller implements DoubleNavigatio
         slidingPaneLayout.setShadowResourceLeft(R.drawable.panel_shadow);
         int fadeColor = (getAttrColor(context, R.attr.backcolor) & 0xffffff) + 0xCC000000;
         slidingPaneLayout.setSliderFadeColor(fadeColor);
-        slidingPaneLayout.openPane();
+        // Since SlidingPaneLayout 1.2 "open" means the right pane covers the left one
+        slidingPaneLayout.closePane();
 
         setLeftController(null);
         setRightController(null);
@@ -80,11 +81,11 @@ public class ThreadSlideController extends Controller implements DoubleNavigatio
         // SlidingPaneLayout does some annoying things for state restoring and incorrectly
         // tells us if the restored state was open or closed
         // We need to use reflection to get the private field that stores this correct state
-        boolean restoredOpen = false;
+        boolean restoredOpen = true;
         try {
             Field field = SlidingPaneLayout.class.getDeclaredField("mPreservedOpenState");
             field.setAccessible(true);
-            restoredOpen = field.getBoolean(slidingPaneLayout);
+            restoredOpen = !field.getBoolean(slidingPaneLayout);
         } catch (Exception e) {
             Logger.e(TAG, "Error getting restored open state with reflection", e);
         }
@@ -118,9 +119,9 @@ public class ThreadSlideController extends Controller implements DoubleNavigatio
     public void switchToController(boolean leftController) {
         if (leftController != leftOpen()) {
             if (leftController) {
-                slidingPaneLayout.openPane();
-            } else {
                 slidingPaneLayout.closePane();
+            } else {
+                slidingPaneLayout.openPane();
             }
             Toolbar toolbar = ((ToolbarNavigationController) navigationController).toolbar;
             toolbar.processScrollCollapse(Toolbar.TOOLBAR_COLLAPSE_SHOW, true);
@@ -257,7 +258,8 @@ public class ThreadSlideController extends Controller implements DoubleNavigatio
     }
 
     private boolean leftOpen() {
-        return slidingPaneLayout.isOpen();
+        // Both panes are visible when it can't slide
+        return !slidingPaneLayout.isSlideable() || !slidingPaneLayout.isOpen();
     }
 
     private void slideStateChanged(boolean leftOpen) {

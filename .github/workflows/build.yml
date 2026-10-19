@@ -55,6 +55,24 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # The download of the system image is sometimes corrupt, the emulator step then fails
+      # before the emulator starts
+      - name: Install the system image
+        run: |
+          image="system-images;android-${{ matrix.api-level }};google_apis;x86_64"
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$sdkmanager" ] || sdkmanager=sdkmanager
+          for attempt in 1 2 3; do
+            yes | "$sdkmanager" --install "$image" > /dev/null || true
+            if [ -f "$ANDROID_HOME/system-images/android-${{ matrix.api-level }}/google_apis/x86_64/system.img" ]; then
+              exit 0
+            fi
+            echo "Download $attempt failed, trying again"
+            "$sdkmanager" --uninstall "$image" > /dev/null || true
+            sleep 10
+          done
+          exit 1
+
       - name: Run smoke test on the emulator
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
@@ -70,3 +88,55 @@ jobs:
         with:
           name: smoke-test-api-${{ matrix.api-level }}
           path: smoke-test-results
+
+  import-test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: apks
+          path: apks
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # The download of the system image is sometimes corrupt, the emulator step then fails
+      # before the emulator starts
+      - name: Install the system image
+        run: |
+          image="system-images;android-35;google_apis;x86_64"
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$sdkmanager" ] || sdkmanager=sdkmanager
+          for attempt in 1 2 3; do
+            yes | "$sdkmanager" --install "$image" > /dev/null || true
+            if [ -f "$ANDROID_HOME/system-images/android-35/google_apis/x86_64/system.img" ]; then
+              exit 0
+            fi
+            echo "Download $attempt failed, trying again"
+            "$sdkmanager" --uninstall "$image" > /dev/null || true
+            sleep 10
+          done
+          exit 1
+
+      # Imports an adb backup of the original Clover app
+      - name: Run import test on the emulator
+        uses: reactivecircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash .github/scripts/import-test.sh apks/default/release/app-default-release.apk import-test-results
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: import-test
+          path: import-test-results

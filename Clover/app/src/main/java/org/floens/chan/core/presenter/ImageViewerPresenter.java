@@ -34,6 +34,7 @@ import org.floens.chan.utils.AndroidUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -61,6 +62,7 @@ public class ImageViewerPresenter implements MultiImageView.Callback, ViewPager.
     private Loadable loadable;
 
     private Set<FileCacheDownloader> preloadingImages = new HashSet<>();
+    private List<String> preloadQueue = new ArrayList<>();
 
     // Disables swiping until the view pager is visible
     private boolean viewPagerVisible = false;
@@ -242,46 +244,78 @@ public class ImageViewerPresenter implements MultiImageView.Callback, ViewPager.
         preloadNext();
     }
 
-    // This won't actually change any modes, but it will preload the image so that it's
-    // available immediately when the user swipes right.
+    // This won't actually change any modes, but it will preload the next images so that they're
+    // available immediately when the user swipes right. How many is a setting.
     private void preloadNext() {
-        if (selectedPosition + 1 < images.size()) {
-            PostImage next = images.get(selectedPosition + 1);
+        int count = ChanSettings.mediaPreloadCount.get();
 
-            boolean load = false;
-            if (next.type == PostImage.Type.STATIC || next.type == PostImage.Type.GIF) {
-                load = imageAutoLoad(next);
-            } else if (next.type == PostImage.Type.MOVIE) {
-                load = videoAutoLoad(next);
+        // The current image is kept too, its view may be using the preload download
+        Set<String> keep = new HashSet<>();
+        preloadQueue.clear();
+        for (int i = selectedPosition; i < images.size() && i <= selectedPosition + count; i++) {
+            PostImage image = images.get(i);
+            String url = image.imageUrl.toString();
+            keep.add(url);
+            if (i > selectedPosition && shouldPreload(image)) {
+                preloadQueue.add(url);
+            }
+        }
+
+        // Stop preloading images that are now behind or too far ahead
+        Iterator<FileCacheDownloader> iterator = preloadingImages.iterator();
+        while (iterator.hasNext()) {
+            FileCacheDownloader downloader = iterator.next();
+            if (!keep.contains(downloader.getUrl())) {
+                downloader.cancel();
+                iterator.remove();
+            }
+        }
+
+        preloadFromQueue();
+    }
+
+    private boolean shouldPreload(PostImage image) {
+        if (fileCache.exists(image.imageUrl.toString())) {
+            return false;
+        }
+        if (image.type == PostImage.Type.STATIC || image.type == PostImage.Type.GIF) {
+            return imageAutoLoad(image);
+        } else if (image.type == PostImage.Type.MOVIE) {
+            return videoAutoLoad(image);
+        }
+        return false;
+    }
+
+    // Preloads one at a time, the file cache downloads two at once and the image on screen should
+    // never wait for a preload
+    private void preloadFromQueue() {
+        while (preloadingImages.isEmpty() && !preloadQueue.isEmpty()) {
+            String url = preloadQueue.remove(0);
+            if (fileCache.getDownloaderByKey(url) != null) {
+                // Already loading in a view
+                continue;
             }
 
-            if (load) {
-                final String fileUrl = next.imageUrl.toString();
-
-                // If downloading, remove from preloadingImages if it finished.
-                // Array to allow access from within the callback (the callback should really
-                // pass the filecachedownloader itself).
-                final FileCacheDownloader[] preloadDownload =
-                        new FileCacheDownloader[1];
-                preloadDownload[0] = fileCache.downloadFile(fileUrl,
-                        new FileCacheListener() {
-                            @Override
-                            public void onEnd() {
-                                if (preloadDownload[0] != null) {
-                                    preloadingImages.remove(preloadDownload[0]);
-                                }
-                            }
-                        }
-                );
-
-                if (preloadDownload[0] != null) {
-                    preloadingImages.add(preloadDownload[0]);
+            // Array to allow access from within the callback (the callback should really
+            // pass the filecachedownloader itself).
+            final FileCacheDownloader[] preloadDownload = new FileCacheDownloader[1];
+            preloadDownload[0] = fileCache.downloadFile(url, new FileCacheListener() {
+                @Override
+                public void onEnd() {
+                    if (preloadDownload[0] != null && preloadingImages.remove(preloadDownload[0])) {
+                        preloadFromQueue();
+                    }
                 }
+            });
+
+            if (preloadDownload[0] != null) {
+                preloadingImages.add(preloadDownload[0]);
             }
         }
     }
 
     private void cancelPreloadingImages() {
+        preloadQueue.clear();
         for (FileCacheDownloader preloadingImage : preloadingImages) {
             preloadingImage.cancel();
         }

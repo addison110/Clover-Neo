@@ -17,6 +17,8 @@
  */
 package org.floens.chan;
 
+import org.floens.chan.core.cloverimport.CloverImport;
+
 /**
  * The ChanApplication wrapping our Chan application.
  * For historical reasons the main application class needs to be 'org.floens.chan.ChanApplication'.
@@ -24,6 +26,9 @@ package org.floens.chan;
 public class ChanApplication extends Chan {
     @Override
     public void onCreate() {
+        // Before anything opens the database or reads a setting
+        CloverImport.applyStaged(this);
+
         super.onCreate();
 
         initialize();

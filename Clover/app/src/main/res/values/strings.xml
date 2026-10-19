@@ -370,6 +370,17 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="settings_media">Media</string>
     <string name="settings_media_description">Save location, auto loading, etc.</string>
     <string name="settings_filters">Filters</string>
+    <string name="settings_import_clover">Import from Clover</string>
+    <string name="settings_import_clover_description">Sites, boards, bookmarks, history, filters and settings from a backup of the original Clover app</string>
+    <string name="import_clover_reading">Reading backup…</string>
+    <string name="import_clover_confirm_title">Import from Clover?</string>
+    <string name="import_clover_confirm">This replaces the sites, boards, bookmarks, history, filters and settings in Clover Neo with the ones from the backup. Clover Neo restarts afterwards.</string>
+    <string name="import_clover_import">Import</string>
+    <string name="import_clover_error_title">Can\'t import this file</string>
+    <string name="import_clover_not_a_backup">This is not an adb backup. Create one on a computer with:\nadb backup -f clover.ab org.floens.chan</string>
+    <string name="import_clover_encrypted">This backup is encrypted. Create it again and leave the password empty.</string>
+    <string name="import_clover_no_data">This backup has no Clover data. Make sure it was created with:\nadb backup -f clover.ab org.floens.chan\n\nOpen Clover once before creating the backup, Android leaves out apps that were force stopped. Some phones don\'t allow app backups at all.</string>
+    <string name="import_clover_failed">Reading the backup failed.</string>
 
     <!-- Thread watcher -->
     <string name="setting_watch_summary_enabled">Watching bookmarked threads</string>
@@ -523,6 +534,13 @@ If disabled, save the image with the filename the uploader assigned."
     <string name="setting_image_auto_load_none">Never</string>
 
     <string name="setting_video_auto_load">Automatically load videos</string>
+
+    <string name="setting_media_preload">Preload in the image viewer</string>
+    <string name="setting_media_preload_off">Off</string>
+    <plurals name="setting_media_preload_count">
+        <item quantity="one">Next file</item>
+        <item quantity="other">Next %d files</item>
+    </plurals>
 
     <string name="setting_video_auto_loop">Enable automatic video-looping</string>
     <string name="setting_video_auto_loop_description">Automatically loop video content</string>

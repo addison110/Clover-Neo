@@ -34,6 +34,11 @@ shot browse 5
 # Board and thread, opened by link
 open_url "https://boards.4chan.org/g/"
 shot board 6
+board_failed=0
+if ! python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/thumbnail(_view)?$' > /dev/null; then
+    log "FAIL: the board shows no threads"
+    board_failed=1
+fi
 THREAD=$(first_thread g)
 if [ -n "$THREAD" ]; then
     open_url "https://boards.4chan.org/g/thread/$THREAD"
@@ -83,4 +88,4 @@ for _ in $(seq 8); do
 done
 shot after-back
 
-check_crashes "$PKG" && log "PASS: no crashes"
+check_crashes "$PKG" && [ "$board_failed" = 0 ] && log "PASS: no crashes"

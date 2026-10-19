@@ -36,13 +36,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:hint="@string/setup_sites_url"
+        app:placeholderText="@string/setup_sites_url_hint">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/url"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/setup_sites_url"
             android:inputType="textUri" />
 
     </com.google.android.material.textfield.TextInputLayout>

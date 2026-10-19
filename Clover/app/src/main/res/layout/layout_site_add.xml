@@ -38,7 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         android:layout_marginRight="20dp"
         android:layout_marginTop="8dp"
         android:hint="@string/setup_sites_url"
-        app:placeholderText="@string/setup_sites_url_hint">
+        app:placeholderText="@string/setup_sites_url_hint"
+        app:placeholderTextColor="?android:attr/textColorHint">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/url"

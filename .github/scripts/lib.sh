@@ -140,11 +140,16 @@ open_drawer() {
 }
 
 # shows_threads: whether the screen shows posts with thumbnails, waiting up to 20 seconds for
-# them to load
+# them to load and retrying a failed load
 shows_threads() {
+    local pos
     for _ in $(seq 10); do
         dump
         python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/thumbnail(_view)?$' > /dev/null && return 0
+        if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" text '^retry$'); then
+            log "load failed, tap retry"
+            adb shell input tap $pos
+        fi
         sleep 2
     done
     return 1
@@ -157,6 +162,15 @@ alive() {
 init_device() {
     read -r WIDTH HEIGHT < <(adb shell wm size | sed -n 's/.*: \([0-9]*\)x\([0-9]*\).*/\1 \2/p' | tail -1)
     log "device API $(adb shell getprop ro.build.version.sdk | tr -d '\r'), screen ${WIDTH}x${HEIGHT}"
+
+    # The emulator's network can still be connecting right after boot
+    local i
+    for i in $(seq 60); do
+        adb shell dumpsys connectivity 2> /dev/null | grep -q '&VALIDATED' && break
+        adb shell ping -c 1 -W 2 a.4cdn.org > /dev/null 2>&1 && break
+        sleep 2
+    done
+    log "network up after $((i * 2)) seconds"
 }
 
 # Adds all boards of 4chan, starting from the board screen. Also adds the site itself unless

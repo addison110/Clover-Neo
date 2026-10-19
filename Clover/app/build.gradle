@@ -43,6 +43,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Backports java.util.function and friends to Android 6, used by jsoup
+        coreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -141,6 +143,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+
     implementation 'androidx.appcompat:appcompat:1.8.0'
     implementation 'androidx.activity:activity:1.13.0'
     implementation 'androidx.core:core:1.19.1'

@@ -93,39 +93,60 @@ public class HintPopup {
 
     public void show() {
         AndroidUtils.runOnUiThread(() -> {
-            if (!dismissed) {
-                popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-                // TODO: cleanup
-                int xoff;
-                if (rightAligned) {
-                    xoff = -popupView.getMeasuredWidth() + anchor.getWidth() + offsetX - dp(2);
-                } else {
-                    xoff = -popupView.getMeasuredWidth() + offsetX - dp(2);
-                }
-                int yoff = -dp(25) + offsetY + (top ? -anchor.getHeight() - dp(30) : 0);
-                popupWindow.showAsDropDown(anchor, xoff, yoff);
+            if (anchor.isAttachedToWindow()) {
+                showAtAnchor();
+            } else {
+                // Showing a popup on a detached anchor crashes, wait until it is attached
+                anchor.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(View v) {
+                        anchor.removeOnAttachStateChangeListener(this);
+                        anchor.post(HintPopup.this::showAtAnchor);
+                    }
 
-                if (wiggle) {
-                    TimeInterpolator wiggleInterpolator = input ->
-                            (float) Math.sin(60 * input * 2.0 * Math.PI);
-
-                    popupView.animate()
-                            .translationY(dp(2))
-                            .setInterpolator(wiggleInterpolator)
-                            .setDuration(60000)
-                            .start();
-                }
-
-                if (!rightAligned) {
-                    View arrow = popupView.findViewById(R.id.arrow);
-                    LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) arrow.getLayoutParams();
-                    lp.gravity = Gravity.LEFT;
-                    arrow.setLayoutParams(lp);
-                }
+                    @Override
+                    public void onViewDetachedFromWindow(View v) {
+                    }
+                });
             }
         }, 400);
 
         // popupView.postDelayed(popupWindow::dismiss, 5000);
+    }
+
+    private void showAtAnchor() {
+        if (dismissed || !anchor.isAttachedToWindow()) {
+            return;
+        }
+
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        // TODO: cleanup
+        int xoff;
+        if (rightAligned) {
+            xoff = -popupView.getMeasuredWidth() + anchor.getWidth() + offsetX - dp(2);
+        } else {
+            xoff = -popupView.getMeasuredWidth() + offsetX - dp(2);
+        }
+        int yoff = -dp(25) + offsetY + (top ? -anchor.getHeight() - dp(30) : 0);
+        popupWindow.showAsDropDown(anchor, xoff, yoff);
+
+        if (wiggle) {
+            TimeInterpolator wiggleInterpolator = input ->
+                    (float) Math.sin(60 * input * 2.0 * Math.PI);
+
+            popupView.animate()
+                    .translationY(dp(2))
+                    .setInterpolator(wiggleInterpolator)
+                    .setDuration(60000)
+                    .start();
+        }
+
+        if (!rightAligned) {
+            View arrow = popupView.findViewById(R.id.arrow);
+            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) arrow.getLayoutParams();
+            lp.gravity = Gravity.LEFT;
+            arrow.setLayoutParams(lp);
+        }
     }
 
     public void alignLeft() {

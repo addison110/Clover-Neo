@@ -50,8 +50,10 @@ tap text '^ok$' && shot clover-old-app-warning
 setup_4chan
 shot clover-browse 5
 
-# Back up Clover, the device asks for confirmation
-adb shell am force-stop "$CLOVER_PKG"
+# Back up Clover, the device asks for confirmation. Android skips stopped apps, so it only goes
+# to the background, a force stop would leave an empty backup.
+adb shell input keyevent KEYCODE_HOME
+sleep 2
 adb backup -f "$OUT/clover.ab" "$CLOVER_PKG" &
 BACKUP=$!
 tap resource-id 'button_allow$' || tap text '^back up my data$'

@@ -93,6 +93,13 @@ if [ -n "$THREAD" ]; then
         elif ! python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/exo_play_pause$' > /dev/null; then
             log "NOT FOUND the video controls after tapping the video"
         fi
+        # Double-tapping the right side skips forward, both taps in one shell to be quick enough
+        x=$((WIDTH * 3 / 4)); y=$((HEIGHT / 2))
+        adb shell "input tap $x $y; input tap $x $y"
+        log "double tap $x $y"
+        shot video-skipped 0
+        python3 "$HERE/ui.py" "$OUT/current.xml" text '^\+[0-9]+ s$' > /dev/null ||
+            log "NOT FOUND the skip label after double-tapping the video"
     fi
     back
     shot video-closed

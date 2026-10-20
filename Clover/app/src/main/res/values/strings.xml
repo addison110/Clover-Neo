@@ -559,7 +559,12 @@ If disabled, save the image with the filename the uploader assigned."
     <string name="setting_video_controls_timeout">Hide controls after</string>
     <string name="setting_video_seek_buttons">Rewind and fast forward buttons</string>
     <string name="setting_video_seek_buttons_description">Show buttons to skip back and ahead</string>
+    <string name="setting_video_controls_timeout_never">Never</string>
+    <string name="setting_video_double_tap_seek">Double-tap to skip</string>
+    <string name="setting_video_double_tap_seek_description">Double-tap the left or right side of a video to skip back or forward</string>
     <string name="setting_video_seek_increment">Skip by</string>
+    <string name="video_skipped_back">−%d s</string>
+    <string name="video_skipped_forward">+%d s</string>
     <string name="video_rewind">Rewind</string>
     <string name="video_play_pause">Play or pause</string>
     <string name="video_fast_forward">Fast forward</string>

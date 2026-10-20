@@ -140,6 +140,7 @@ public class ChanSettings {
     public static final IntegerSetting videoControlsTimeout;
     public static final BooleanSetting videoSeekButtons;
     public static final IntegerSetting videoSeekIncrement;
+    public static final BooleanSetting videoDoubleTapSeek;
 
     public static final BooleanSetting watchEnabled;
     public static final BooleanSetting watchCountdown;
@@ -227,6 +228,7 @@ public class ChanSettings {
         videoControlsTimeout = new IntegerSetting(p, "preference_video_controls_timeout", 3000);
         videoSeekButtons = new BooleanSetting(p, "preference_video_seek_buttons", true);
         videoSeekIncrement = new IntegerSetting(p, "preference_video_seek_increment", 10000);
+        videoDoubleTapSeek = new BooleanSetting(p, "preference_video_double_tap_seek", true);
 
         watchEnabled = new BooleanSetting(p, "preference_watch_enabled", false);
         watchEnabled.addCallback((setting, value) ->

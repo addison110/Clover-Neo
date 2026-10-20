@@ -17,6 +17,7 @@
  */
 package org.floens.chan.ui.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -27,12 +28,15 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -73,6 +77,7 @@ import pl.droidsonroids.gif.GifDrawable;
 import pl.droidsonroids.gif.GifImageView;
 
 import static org.floens.chan.Chan.inject;
+import static org.floens.chan.utils.AndroidUtils.dp;
 
 public class MultiImageView extends FrameLayout implements View.OnClickListener, LifecycleObserver, Player.Listener {
     public enum Mode {
@@ -103,6 +108,7 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
 
     private VideoView videoView;
     private PlayerView exoVideoView;
+    private TextView seekFeedback;
     private boolean videoError = false;
     private MediaPlayer mediaPlayer;
     private ExoPlayer exoPlayer;
@@ -532,7 +538,80 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
         // There is only one video, there's nothing to skip to
         view.setShowPreviousButton(false);
         view.setShowNextButton(false);
+
+        if (ChanSettings.videoDoubleTapSeek.get()) {
+            setupDoubleTapSeek(view);
+        }
         return view;
+    }
+
+    // Double-tapping the left half skips back, the right half forward. A single tap still shows or
+    // hides the controls, it waits a moment to know it isn't a double tap.
+    // The gesture detector calls performClick for the single tap.
+    @SuppressLint("ClickableViewAccessibility")
+    @OptIn(markerClass = UnstableApi.class)
+    private void setupDoubleTapSeek(PlayerView view) {
+        GestureDetector detector = new GestureDetector(getContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onDown(MotionEvent e) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onSingleTapConfirmed(MotionEvent e) {
+                        // Shows or hides the controls
+                        view.performClick();
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onDoubleTap(MotionEvent e) {
+                        Player player = view.getPlayer();
+                        if (player == null) {
+                            return false;
+                        }
+                        boolean back = e.getX() < view.getWidth() / 2f;
+                        if (back) {
+                            player.seekBack();
+                        } else {
+                            player.seekForward();
+                        }
+                        showSeekFeedback(view, back);
+                        return true;
+                    }
+                });
+        view.setOnTouchListener((v, event) -> detector.onTouchEvent(event));
+    }
+
+    @OptIn(markerClass = UnstableApi.class)
+    private void showSeekFeedback(PlayerView view, boolean back) {
+        FrameLayout overlay = view.getOverlayFrameLayout();
+        if (overlay == null) {
+            return;
+        }
+        if (seekFeedback == null || seekFeedback.getParent() != overlay) {
+            seekFeedback = new TextView(getContext());
+            seekFeedback.setTextColor(0xffffffff);
+            seekFeedback.setTextSize(16);
+            seekFeedback.setBackgroundColor(0x99000000);
+            seekFeedback.setPadding(dp(12), dp(6), dp(12), dp(6));
+            overlay.addView(seekFeedback, new FrameLayout.LayoutParams(
+                    LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        }
+
+        int seconds = ChanSettings.videoSeekIncrement.get() / 1000;
+        seekFeedback.setText(getContext().getString(
+                back ? R.string.video_skipped_back : R.string.video_skipped_forward, seconds));
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) seekFeedback.getLayoutParams();
+        params.gravity = Gravity.CENTER_VERTICAL | (back ? Gravity.START : Gravity.END);
+        params.setMarginStart(dp(32));
+        params.setMarginEnd(dp(32));
+        seekFeedback.setLayoutParams(params);
+
+        seekFeedback.animate().cancel();
+        seekFeedback.setAlpha(1f);
+        seekFeedback.animate().alpha(0f).setStartDelay(500).setDuration(300).start();
     }
 
     @Override

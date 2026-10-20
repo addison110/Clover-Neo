@@ -118,15 +118,23 @@ public class VideoSettingsController extends SettingsController {
                     R.string.setting_video_controls_auto_show,
                     R.string.setting_video_controls_auto_show_description)));
 
+            List<ListSettingView.Item> timeouts = secondsItems(2, 3, 5, 10);
+            // Media3 keeps the controls visible without a timeout
+            timeouts.add(new ListSettingView.Item<>(
+                    getString(R.string.setting_video_controls_timeout_never), 0));
             controlsSettings.add(controls.add(new ListSettingView<>(this,
                     ChanSettings.videoControlsTimeout,
-                    R.string.setting_video_controls_timeout,
-                    secondsItems(2, 3, 5, 10))));
+                    R.string.setting_video_controls_timeout, timeouts)));
 
             controlsSettings.add(controls.add(new BooleanSettingView(this,
                     ChanSettings.videoSeekButtons,
                     R.string.setting_video_seek_buttons,
                     R.string.setting_video_seek_buttons_description)));
+
+            controlsSettings.add(controls.add(new BooleanSettingView(this,
+                    ChanSettings.videoDoubleTapSeek,
+                    R.string.setting_video_double_tap_seek,
+                    R.string.setting_video_double_tap_seek_description)));
 
             controlsSettings.add(controls.add(new ListSettingView<>(this,
                     ChanSettings.videoSeekIncrement,

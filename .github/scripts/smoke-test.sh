@@ -25,7 +25,7 @@ adb logcat -c
 # Launch, the notification permission is asked on Android 13+
 adb shell am start -W -n "$ACTIVITY" > /dev/null
 shot launch 5
-tap resource-id 'permission_allow_button$' && shot notification-permission-allowed
+[ "$API" -ge 33 ] && tap resource-id 'permission_allow_button$' && shot notification-permission-allowed
 
 # A new install starts on 4chan's /g/
 failed=0
@@ -56,7 +56,8 @@ if [ -n "$THREAD" ]; then
     # Reply box with the keyboard, the text is typed but never posted
     if tap resource-id ':id/reply_button$'; then
         shot reply-open 3
-        type_into ':id/comment$' smoke
+        # The posts' text views have the id "comment" too, the reply box has the only text field
+        type_into class 'EditText$' smoke
         shot reply-keyboard 3
         back
         back

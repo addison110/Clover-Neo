@@ -28,6 +28,7 @@ import android.media.MediaPlayer;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -35,6 +36,7 @@ import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import androidx.annotation.OptIn;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
@@ -42,6 +44,7 @@ import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
 import androidx.media3.common.Tracks;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
@@ -448,13 +451,12 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
 
             onModeLoaded(Mode.MOVIE, videoView);
         } else if (ChanSettings.videoUseExoplayer.get()) {
-            exoVideoView = new PlayerView(getContext());
-            // Only show the controls when tapped, not over the video when it starts
-            exoVideoView.setControllerAutoShow(false);
-            // There is only one video, there's nothing to skip to
-            exoVideoView.setShowPreviousButton(false);
-            exoVideoView.setShowNextButton(false);
-            exoPlayer = new ExoPlayer.Builder(getContext()).build();
+            exoVideoView = createPlayerView();
+            int seekIncrement = ChanSettings.videoSeekIncrement.get();
+            exoPlayer = new ExoPlayer.Builder(getContext())
+                    .setSeekBackIncrementMs(seekIncrement)
+                    .setSeekForwardIncrementMs(seekIncrement)
+                    .build();
             exoVideoView.setPlayer(exoPlayer);
 
             exoPlayer.setRepeatMode(ChanSettings.videoAutoLoop.get() ?
@@ -507,6 +509,30 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
                 onVideoError();
             }
         }
+    }
+
+    // Setting up the controls is unstable API in Media3
+    @OptIn(markerClass = UnstableApi.class)
+    private PlayerView createPlayerView() {
+        PlayerView view;
+        if ("bottom".equals(ChanSettings.videoControlsPosition.get())) {
+            view = (PlayerView) LayoutInflater.from(getContext())
+                    .inflate(R.layout.video_player_bottom, this, false);
+            // Media3's animation slides the parts of its own layout separately
+            view.setControllerAnimationEnabled(false);
+        } else {
+            view = new PlayerView(getContext());
+        }
+
+        view.setControllerAutoShow(ChanSettings.videoControlsAutoShow.get());
+        view.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
+        boolean seekButtons = ChanSettings.videoSeekButtons.get();
+        view.setShowRewindButton(seekButtons);
+        view.setShowFastForwardButton(seekButtons);
+        // There is only one video, there's nothing to skip to
+        view.setShowPreviousButton(false);
+        view.setShowNextButton(false);
+        return view;
     }
 
     @Override

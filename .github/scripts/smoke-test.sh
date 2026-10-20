@@ -82,7 +82,18 @@ THREAD=$(first_thread wsg)
 if [ -n "$THREAD" ]; then
     open_url "https://boards.4chan.org/wsg/thread/$THREAD"
     shot video-thread 6
-    tap resource-id ':id/thumbnail_view$' && shot video-playing 10
+    if tap resource-id ':id/thumbnail_view$'; then
+        shot video-playing 10
+        # Tapping the video shows its controls, by default in a bar at the bottom
+        adb shell input tap $((WIDTH / 2)) $((HEIGHT / 2))
+        shot video-controls 1
+        if python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/exo_center_controls$' > /dev/null; then
+            log "FAIL: the video controls are in the middle instead of the bottom bar"
+            failed=1
+        elif ! python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/exo_play_pause$' > /dev/null; then
+            log "NOT FOUND the video controls after tapping the video"
+        fi
+    fi
     back
     shot video-closed
 else

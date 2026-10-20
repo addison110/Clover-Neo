@@ -1,0 +1,51 @@
+name: Test build
+
+# Builds test APKs from any branch: Actions → Test build → Run workflow, pick the branch. The APKs
+# are in the run's "test-apks" artifact. They're signed with the debug key, so they can't update
+# the official app. The dev build has its own app ID and installs next to it.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Clover
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # Without the release key the release APK is signed with the debug key
+      - name: Build APKs
+        run: ./gradlew assembleDefaultRelease assembleDevDebug --console plain
+
+      - name: Name the APKs after the branch and commit
+        id: name
+        run: |
+          name="$(echo "$GITHUB_REF_NAME" | tr '/' '-')-${GITHUB_SHA::7}"
+          mkdir -p ../test-apks
+          cp app/build/outputs/apk/default/release/app-default-release.apk "../test-apks/CloverNeo-$name.apk"
+          cp app/build/outputs/apk/dev/debug/app-dev-debug.apk "../test-apks/CloverNeo-dev-$name.apk"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Test APKs for \`$GITHUB_REF_NAME\` at ${GITHUB_SHA::7}"
+            echo
+            echo "Download **test-apks-$name** below."
+            echo
+            echo "- \`CloverNeo-$name.apk\`: the optimized build, install on an emulator or a phone without the official app"
+            echo "- \`CloverNeo-dev-$name.apk\`: a debug build that installs next to the official app"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: test-apks-${{ steps.name.outputs.name }}
+          path: test-apks
+          retention-days: 30

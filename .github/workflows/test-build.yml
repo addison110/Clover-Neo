@@ -1,8 +1,8 @@
 name: Test build
 
 # Builds test APKs from any branch: Actions → Test build → Run workflow, pick the branch. The APKs
-# are in the run's "test-apks" artifact. They're signed with the debug key, so they can't update
-# the official app. The dev build has its own app ID and installs next to it.
+# are in the run's "test-apks-<branch>-<commit>" artifact. They're signed with the debug key, so
+# they can't update the official app. The dev build has its own app ID and installs next to it.
 
 on:
   workflow_dispatch:

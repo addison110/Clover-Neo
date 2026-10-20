@@ -134,7 +134,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash .github/scripts/smoke-test.sh apks/default/release/app-default-release.apk smoke-test-results
+          script: bash .github/scripts/smoke-test.sh apks/app-default-release.apk smoke-test-results
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -210,7 +210,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash .github/scripts/import-test.sh apks/default/release/app-default-release.apk import-test-results
+          script: bash .github/scripts/import-test.sh apks/app-default-release.apk import-test-results
 
       - uses: actions/upload-artifact@v7
         if: always()

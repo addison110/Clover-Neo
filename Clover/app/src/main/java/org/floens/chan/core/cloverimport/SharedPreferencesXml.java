@@ -23,6 +23,7 @@ import org.w3c.dom.NodeList;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,7 +32,7 @@ import java.util.Set;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
- * Parses the XML file Android stores SharedPreferences in.
+ * Reads and writes the XML file Android stores SharedPreferences in.
  * <p>Values are String, Boolean, Integer, Long, Float or Set&lt;String&gt;.
  */
 public class SharedPreferencesXml {
@@ -95,5 +96,51 @@ public class SharedPreferencesXml {
             default:
                 return null;
         }
+    }
+
+    public static byte[] write(Map<String, ?> values) {
+        StringBuilder xml = new StringBuilder("<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n<map>\n");
+        for (Map.Entry<String, ?> entry : values.entrySet()) {
+            String name = escape(entry.getKey());
+            Object value = entry.getValue();
+            if (value instanceof String) {
+                xml.append("    <string name=\"").append(name).append("\">")
+                        .append(escape((String) value)).append("</string>\n");
+            } else if (value instanceof Set) {
+                xml.append("    <set name=\"").append(name).append("\">\n");
+                for (Object item : (Set<?>) value) {
+                    xml.append("        <string>").append(escape(String.valueOf(item))).append("</string>\n");
+                }
+                xml.append("    </set>\n");
+            } else if (value != null) {
+                String tag = tagName(value);
+                if (tag != null) {
+                    xml.append("    <").append(tag).append(" name=\"").append(name)
+                            .append("\" value=\"").append(value).append("\" />\n");
+                }
+            }
+        }
+        xml.append("</map>\n");
+        return xml.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static String tagName(Object value) {
+        if (value instanceof Boolean) {
+            return "boolean";
+        } else if (value instanceof Integer) {
+            return "int";
+        } else if (value instanceof Long) {
+            return "long";
+        } else if (value instanceof Float) {
+            return "float";
+        }
+        return null;
+    }
+
+    private static String escape(String text) {
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
     }
 }

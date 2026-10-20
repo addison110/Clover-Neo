@@ -39,8 +39,8 @@ public class CloverBackupReader {
     public static final String CLOVER_PACKAGE = "org.floens.chan";
 
     private static final String MAGIC = "ANDROID BACKUP";
-    private static final String DATABASE_PATH = "apps/" + CLOVER_PACKAGE + "/db/ChanDB";
-    private static final String PREFERENCES_PATH =
+    static final String DATABASE_PATH = "apps/" + CLOVER_PACKAGE + "/db/ChanDB";
+    static final String PREFERENCES_PATH =
             "apps/" + CLOVER_PACKAGE + "/sp/" + CLOVER_PACKAGE + "_preferences.xml";
     private static final byte[] SQLITE_HEADER = "SQLite format 3\0".getBytes(StandardCharsets.US_ASCII);
     private static final int BLOCK = 512;

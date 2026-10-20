@@ -69,6 +69,25 @@ public class DatabaseSiteManager {
         };
     }
 
+    /**
+     * Deletes the site and everything that refers to it: boards, threads, pins, history, saved
+     * replies and hidden threads.
+     */
+    public Callable<Void> delete(final int id) {
+        return () -> {
+            String args = String.valueOf(id);
+            String loadables = "(SELECT id FROM loadable WHERE site = ?)";
+            helper.siteDao.executeRaw("DELETE FROM pin WHERE loadable_id IN " + loadables, args);
+            helper.siteDao.executeRaw("DELETE FROM history WHERE loadable_id IN " + loadables, args);
+            helper.siteDao.executeRaw("DELETE FROM loadable WHERE site = ?", args);
+            helper.siteDao.executeRaw("DELETE FROM board WHERE site = ?", args);
+            helper.siteDao.executeRaw("DELETE FROM savedreply WHERE site = ?", args);
+            helper.siteDao.executeRaw("DELETE FROM threadhide WHERE site = ?", args);
+            helper.siteDao.deleteById(id);
+            return null;
+        };
+    }
+
     public Callable<Map<Integer, Integer>> getOrdering() {
         return () -> {
             QueryBuilder<SiteModel, Integer> q = helper.siteDao.queryBuilder();

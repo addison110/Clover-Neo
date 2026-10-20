@@ -84,18 +84,27 @@ if [ -n "$THREAD" ]; then
     shot video-thread 6
     if tap resource-id ':id/thumbnail_view$'; then
         shot video-playing 10
-        # Tapping the video shows its controls, by default in a bar at the bottom
+        # Tapping the video shows its controls, by default in a bar at the bottom. They hide again
+        # after a few seconds, so the views are dumped before the screenshot.
         adb shell input tap $((WIDTH / 2)) $((HEIGHT / 2))
-        shot video-controls 1
-        if python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/exo_center_controls$' > /dev/null; then
+        sleep 1
+        dump
+        controls="$OUT/video-controls-early.xml"
+        cp "$OUT/current.xml" "$controls"
+        shot video-controls 0
+        if python3 "$HERE/ui.py" "$controls" resource-id ':id/exo_center_controls$' > /dev/null; then
             log "FAIL: the video controls are in the middle instead of the bottom bar"
             failed=1
-        elif ! python3 "$HERE/ui.py" "$OUT/current.xml" resource-id ':id/exo_play_pause$' > /dev/null; then
+        elif ! python3 "$HERE/ui.py" "$controls" resource-id ':id/exo_play_pause$' > /dev/null; then
             log "NOT FOUND the video controls after tapping the video"
         fi
-        # Double-tapping the right side skips forward, both taps in one shell to be quick enough
+        sleep 4
+
+        # Double-tapping the right side skips forward. Each "input" takes a while to start, so the
+        # first one starts in the background and the second 100 ms later, the taps land about
+        # 100 ms apart.
         x=$((WIDTH * 3 / 4)); y=$((HEIGHT / 2))
-        adb shell "input tap $x $y; input tap $x $y"
+        adb shell "input tap $x $y & sleep 0.1; input tap $x $y; wait"
         log "double tap $x $y"
         shot video-skipped 0
         python3 "$HERE/ui.py" "$OUT/current.xml" text '^\+[0-9]+ s$' > /dev/null ||

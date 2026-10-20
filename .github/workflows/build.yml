@@ -102,28 +102,6 @@ jobs:
           done
           exit 1
 
-      # A snapshot of the booted emulator, it then starts in seconds instead of booting from
-      # scratch. Bump v1 to throw the cached snapshots away.
-      - name: Cache the emulator
-        id: avd-cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-${{ matrix.api-level }}-v1
-
-      - name: Boot the emulator once to save its snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2.38.0
-        with:
-          api-level: ${{ matrix.api-level }}
-          target: google_apis
-          arch: x86_64
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "Saved the snapshot"
 
       - name: Run smoke test on the emulator
         uses: reactivecircus/android-emulator-runner@v2.38.0
@@ -131,9 +109,8 @@ jobs:
           api-level: ${{ matrix.api-level }}
           target: google_apis
           arch: x86_64
-          force-avd-creation: false
           disable-animations: true
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash .github/scripts/smoke-test.sh apks/app-default-release.apk smoke-test-results
 
       - uses: actions/upload-artifact@v7
@@ -177,28 +154,6 @@ jobs:
           done
           exit 1
 
-      # A snapshot of the booted emulator, it then starts in seconds instead of booting from
-      # scratch. Bump v1 to throw the cached snapshots away.
-      - name: Cache the emulator
-        id: avd-cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-35-v1
-
-      - name: Boot the emulator once to save its snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2.38.0
-        with:
-          api-level: 35
-          target: google_apis
-          arch: x86_64
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "Saved the snapshot"
 
       # Imports an adb backup of the original Clover app
       - name: Run import test on the emulator
@@ -207,9 +162,8 @@ jobs:
           api-level: 35
           target: google_apis
           arch: x86_64
-          force-avd-creation: false
           disable-animations: true
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash .github/scripts/import-test.sh apks/app-default-release.apk import-test-results
 
       - uses: actions/upload-artifact@v7

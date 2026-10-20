@@ -44,12 +44,13 @@ shot() {
     log "screenshot $name"
 }
 
-# tap ATTRIBUTE REGEX: taps the first matching view, waiting up to 15 seconds for it
+# tap ATTRIBUTE REGEX [last]: taps the first (or last) matching view, waiting up to 15 seconds
+# for it
 tap() {
     local pos
     for _ in $(seq 15); do
         dump
-        if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" "$1" "$2"); then
+        if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" "$1" "$2" ${3:+"$3"}); then
             adb shell input tap $pos
             log "tap $1=$2"
             return 0
@@ -74,22 +75,23 @@ type_keys() {
     done
 }
 
-# type_into RESOURCE_ID_REGEX TEXT: types into a text field, retrying when the keyboard ate characters
+# type_into ATTRIBUTE REGEX TEXT: types into a text field, retrying when the keyboard ate characters
 type_into() {
-    tap resource-id "$1" || return 1
+    local text=$3
+    tap "$1" "$2" || return 1
     local attempt
     for attempt in 1 2 3; do
         sleep 2
         if [ "$attempt" = 1 ]; then
-            adb shell input text "$2"
+            adb shell input text "$text"
         else
-            type_keys "$2"
+            type_keys "$text"
         fi
         sleep 1
         dump
         # Before Android 8 the Material text field reports its text as "<text>, <label>"
-        if python3 "$HERE/ui.py" "$OUT/current.xml" text "^$2(,|\$)" > /dev/null; then
-            log "typed $2"
+        if python3 "$HERE/ui.py" "$OUT/current.xml" text "^$text(,|\$)" > /dev/null; then
+            log "typed $text"
             return 0
         fi
         [ "$attempt" = 3 ] && break
@@ -97,7 +99,7 @@ type_into() {
         adb shell input keyevent KEYCODE_MOVE_END
         for _ in $(seq 30); do adb shell input keyevent KEYCODE_DEL; done
     done
-    log "NOT TYPED $2"
+    log "NOT TYPED $text"
     return 1
 }
 
@@ -161,7 +163,8 @@ alive() {
 
 init_device() {
     read -r WIDTH HEIGHT < <(adb shell wm size | sed -n 's/.*: \([0-9]*\)x\([0-9]*\).*/\1 \2/p' | tail -1)
-    log "device API $(adb shell getprop ro.build.version.sdk | tr -d '\r'), screen ${WIDTH}x${HEIGHT}"
+    API=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
+    log "device API $API, screen ${WIDTH}x${HEIGHT}"
 
     # The emulator's network can still be connecting right after boot
     local i
@@ -181,7 +184,7 @@ setup_4chan() {
     tap text '^Setup sites$' && shot sites-setup
     if [ "${1:-}" != site-exists ]; then
         tap resource-id ':id/add$' && shot add-site-dialog
-        type_into ':id/url$' 4chan.org
+        type_into resource-id ':id/url$' 4chan.org
         tap text '^add$' && shot site-added 4
     fi
     tap text '^4chan$' && shot site-configure

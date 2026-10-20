@@ -90,6 +90,12 @@ public class SiteRepository {
             SiteConfigSettingsHolder holder;
             try {
                 holder = instantiateSiteFromModel(siteModel);
+            } catch (UnknownSiteClassException e) {
+                // A site that was removed from the app, added before or imported from Clover
+                Logger.w(TAG, "Removing site " + siteModel.id + " with unknown class id");
+                databaseManager.runTask(
+                        databaseManager.getDatabaseSiteManager().delete(siteModel.id));
+                continue;
             } catch (IllegalArgumentException e) {
                 Logger.e(TAG, "instantiateSiteFromModel", e);
                 break;
@@ -119,7 +125,7 @@ public class SiteRepository {
         Site site = new Chan4();
 
         SiteConfig config = new SiteConfig();
-        config.classId = SiteRegistry.SITE_CLASSES.indexOfValue(site.getClass());
+        config.classId = classIdOf(site.getClass());
         config.external = false;
 
         SiteModel model = createFromClass(config, new JsonSettings());
@@ -130,7 +136,7 @@ public class SiteRepository {
     // model to the database.
     public void addDefaultSite() {
         SiteConfig config = new SiteConfig();
-        config.classId = SiteRegistry.SITE_CLASSES.indexOfValue(Chan4.class);
+        config.classId = classIdOf(Chan4.class);
         config.external = false;
 
         createFromClass(config, new JsonSettings());
@@ -142,7 +148,7 @@ public class SiteRepository {
         SiteConfig config = new SiteConfig();
         JsonSettings settings = new JsonSettings();
 
-        config.classId = SiteRegistry.SITE_CLASSES.indexOfValue(site.getClass());
+        config.classId = classIdOf(site.getClass());
         config.external = false;
 
         SiteModel model = createFromClass(config, settings);
@@ -178,10 +184,14 @@ public class SiteRepository {
                 settings);
     }
 
+    private static int classIdOf(Class<? extends Site> clazz) {
+        return SiteRegistry.SITE_CLASSES.keyAt(SiteRegistry.SITE_CLASSES.indexOfValue(clazz));
+    }
+
     private Site instantiateSiteClass(int classId) {
         Class<? extends Site> clazz = SiteRegistry.SITE_CLASSES.get(classId);
         if (clazz == null) {
-            throw new IllegalArgumentException("Unknown class id");
+            throw new UnknownSiteClassException();
         }
         return instantiateSiteClass(clazz);
     }
@@ -196,6 +206,12 @@ public class SiteRepository {
             throw new IllegalArgumentException();
         }
         return site;
+    }
+
+    private static class UnknownSiteClassException extends IllegalArgumentException {
+        UnknownSiteClassException() {
+            super("Unknown class id");
+        }
     }
 
     public class Sites extends Observable {

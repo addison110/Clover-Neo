@@ -54,7 +54,8 @@ if [ -n "$THREAD" ]; then
     shot thread 6
 
     # Reply box with the keyboard, the text is typed but never posted
-    if tap resource-id ':id/reply_button$'; then
+    # On a narrow screen the board's button is still in the layout, under the thread
+    if tap resource-id ':id/reply_button$' last; then
         shot reply-open 3
         # The posts' text views have the id "comment" too, the reply box has the only text field
         type_into class 'EditText$' smoke

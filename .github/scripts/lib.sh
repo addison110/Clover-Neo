@@ -44,12 +44,13 @@ shot() {
     log "screenshot $name"
 }
 
-# tap ATTRIBUTE REGEX: taps the first matching view, waiting up to 15 seconds for it
+# tap ATTRIBUTE REGEX [last]: taps the first (or last) matching view, waiting up to 15 seconds
+# for it
 tap() {
     local pos
     for _ in $(seq 15); do
         dump
-        if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" "$1" "$2"); then
+        if pos=$(python3 "$HERE/ui.py" "$OUT/current.xml" "$1" "$2" ${3:+"$3"}); then
             adb shell input tap $pos
             log "tap $1=$2"
             return 0

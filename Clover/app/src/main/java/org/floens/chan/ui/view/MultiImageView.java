@@ -449,6 +449,11 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
             onModeLoaded(Mode.MOVIE, videoView);
         } else if (ChanSettings.videoUseExoplayer.get()) {
             exoVideoView = new PlayerView(getContext());
+            // Only show the controls when tapped, not over the video when it starts
+            exoVideoView.setControllerAutoShow(false);
+            // There is only one video, there's nothing to skip to
+            exoVideoView.setShowPreviousButton(false);
+            exoVideoView.setShowNextButton(false);
             exoPlayer = new ExoPlayer.Builder(getContext()).build();
             exoVideoView.setPlayer(exoPlayer);
 

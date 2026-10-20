@@ -18,6 +18,7 @@
 package org.floens.chan.core.presenter;
 
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import org.floens.chan.Chan;
 import org.floens.chan.R;
@@ -34,6 +35,7 @@ import org.floens.chan.core.model.orm.History;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.model.orm.Pin;
 import org.floens.chan.core.model.orm.SavedReply;
+import org.floens.chan.core.offline.SavedThreadManager;
 import org.floens.chan.core.pool.ChanLoaderFactory;
 import org.floens.chan.core.settings.ChanSettings;
 import org.floens.chan.core.site.Site;
@@ -94,14 +96,19 @@ public class ThreadPresenter implements
     private String searchQuery;
     private PostsFilter.Order order = PostsFilter.Order.BUMP;
     private boolean historyAdded = false;
+    private boolean savedCopyShown = false;
+
+    private SavedThreadManager savedThreadManager;
 
     @Inject
     public ThreadPresenter(WatchManager watchManager,
                            DatabaseManager databaseManager,
-                           ChanLoaderFactory chanLoaderFactory) {
+                           ChanLoaderFactory chanLoaderFactory,
+                           SavedThreadManager savedThreadManager) {
         this.watchManager = watchManager;
         this.databaseManager = databaseManager;
         this.chanLoaderFactory = chanLoaderFactory;
+        this.savedThreadManager = savedThreadManager;
     }
 
     public void create(ThreadPresenterCallback threadPresenterCallback) {
@@ -141,6 +148,7 @@ public class ThreadPresenter implements
             chanLoader = null;
             loadable = null;
             historyAdded = false;
+            savedCopyShown = false;
 
             threadPresenterCallback.showNewPostsNotification(false, -1);
             threadPresenterCallback.showLoading();
@@ -189,6 +197,11 @@ public class ThreadPresenter implements
             watchManager.deletePin(pin);
         }
         return isPinned();
+    }
+
+    public void saveForOffline(boolean autoUpdate) {
+        Post op = chanLoader.getThread() == null ? null : chanLoader.getThread().op;
+        savedThreadManager.save(loadable, op, autoUpdate);
     }
 
     public boolean isPinned() {
@@ -304,6 +317,13 @@ public class ThreadPresenter implements
         }
 
         addHistory();
+
+        if (result.savedCopy && !savedCopyShown) {
+            savedCopyShown = true;
+            Toast.makeText(AndroidUtils.getAppContext(), result.archived ?
+                    R.string.saved_thread_showing_gone : R.string.saved_thread_showing_offline,
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override

@@ -9,4 +9,9 @@
         name="exfc"
         path="filecache/" />
 
+    <!-- Media of threads saved for offline viewing, see OfflineStore -->
+    <files-path
+        name="offline"
+        path="offline/media/" />
+
 </paths>

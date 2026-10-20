@@ -55,6 +55,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <item quantity="other">%d replies</item>
     </plurals>
 
+    <plurals name="saved_thread_files">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+
+    <plurals name="saved_thread_missing">
+        <item quantity="one">%d file could not be downloaded</item>
+        <item quantity="other">%d files could not be downloaded</item>
+    </plurals>
+
     <plurals name="image">
         <item quantity="one">%d image</item>
         <item quantity="other">%d images</item>
@@ -88,6 +98,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="card_stats">%1$dR %2$dI</string>
 
     <string name="action_reload">Reload</string>
+    <string name="action_save_offline">Save for offline</string>
     <string name="action_pin">Bookmark</string>
     <string name="action_open_browser">Open in a browser</string>
     <string name="action_share">Share</string>
@@ -355,6 +366,26 @@ Enable \"Play videos with external player\" in the settings to play videos with 
 
     <string name="drawer_sites">Setup sites</string>
     <string name="drawer_history">History</string>
+    <string name="drawer_saved_threads">Saved threads</string>
+
+    <string name="saved_threads_screen">Saved threads</string>
+    <string name="saved_threads_empty_info">No saved threads\n\nUse \"Save for offline\" in a thread\'s menu to keep it and its images on this device</string>
+    <string name="saved_thread_save_title">Save this thread and its images for offline viewing?</string>
+    <string name="saved_thread_update_title">Update the saved copy of this thread?</string>
+    <string name="saved_thread_auto_update_option">Keep it updated with new posts</string>
+    <string name="saved_thread_save_button">Save</string>
+    <string name="saved_thread_saving">Saving the thread for offline viewing</string>
+    <string name="saved_thread_failed">Could not save the thread</string>
+    <string name="saved_thread_notification_saving">Saving thread for offline viewing</string>
+    <string name="saved_thread_notification_progress">%1$d/%2$d files</string>
+    <string name="saved_thread_notification_done">Thread saved for offline viewing</string>
+    <string name="saved_thread_showing_offline">Can\'t reach the site, showing the saved copy</string>
+    <string name="saved_thread_showing_gone">The thread is gone from the site, showing the saved copy</string>
+    <string name="saved_thread_auto_update">Auto-update</string>
+    <string name="saved_thread_not_downloaded">Not on this device, open the thread and save it again</string>
+    <string name="saved_thread_saving_now">Saving…</string>
+    <string name="saved_thread_delete_confirm">Delete the saved copy of this thread?</string>
+    <string name="saved_thread_delete_button">Delete</string>
 
     <!-- Main settings -->
     <string name="settings_screen">Settings</string>

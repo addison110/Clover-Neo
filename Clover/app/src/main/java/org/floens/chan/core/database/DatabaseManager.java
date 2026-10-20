@@ -18,6 +18,7 @@
 package org.floens.chan.core.database;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.os.Looper;
@@ -28,9 +29,12 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 
 import org.floens.chan.Chan;
+import org.floens.chan.utils.IOUtils;
 import org.floens.chan.utils.Logger;
 import org.floens.chan.utils.Time;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -149,6 +153,31 @@ public class DatabaseManager {
     public void reset() {
         helper.reset();
         initializeAndTrim();
+    }
+
+    /**
+     * Copies the database file to {@code target}, for the settings export.
+     * <p>Runs on the database thread so nothing writes in between, but outside of a transaction
+     * so the write-ahead log can be checkpointed into the file first.
+     */
+    public void copyDatabase(File target) throws IOException {
+        try {
+            backgroundExecutor.submit(() -> {
+                SQLiteDatabase database = helper.getWritableDatabase();
+                try (Cursor cursor = database.rawQuery("PRAGMA wal_checkpoint(FULL)", null)) {
+                    // The first column is 1 when the log could not be fully checkpointed
+                    if (cursor.moveToFirst() && cursor.getInt(0) != 0) {
+                        throw new IOException("The database is busy");
+                    }
+                }
+                IOUtils.copyFile(new File(database.getPath()), target);
+                return null;
+            }).get();
+        } catch (InterruptedException e) {
+            throw new IOException(e);
+        } catch (ExecutionException e) {
+            throw e.getCause() instanceof IOException ? (IOException) e.getCause() : new IOException(e.getCause());
+        }
     }
 
     /**

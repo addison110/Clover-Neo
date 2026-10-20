@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# End-to-end test of "Import from Clover" on a running emulator.
+# End-to-end test of "Import backup" with a backup of the original Clover app on a running emulator.
 #
 # Sets up 4chan in the original Clover app, makes an "adb backup" of it, imports that backup in
 # Clover Neo and checks that Neo then has the site. Saves a screenshot and UI dump of every step
@@ -91,7 +91,7 @@ shot neo-launch 5
 open_drawer
 shot neo-drawer
 tap text '^Settings$' && shot settings
-tap text '^Import from Clover$' || fail "no Import from Clover setting"
+tap text '^Import backup$' || fail "no Import backup setting"
 shot file-picker 4
 
 # The picker opens on recent files or the last folder, go to Downloads when the file isn't shown

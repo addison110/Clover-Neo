@@ -31,6 +31,7 @@ import org.floens.chan.core.model.orm.History;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.model.orm.Pin;
 import org.floens.chan.core.model.orm.SavedReply;
+import org.floens.chan.core.model.orm.SavedThread;
 import org.floens.chan.core.model.orm.SiteModel;
 import org.floens.chan.core.model.orm.ThreadHide;
 import org.floens.chan.core.site.SiteService;
@@ -45,7 +46,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = "DatabaseHelper";
 
     public static final String DATABASE_NAME = "ChanDB";
-    private static final int DATABASE_VERSION = 26;
+    private static final int DATABASE_VERSION = 27;
 
     public Dao<Pin, Integer> pinDao;
     public Dao<Loadable, Integer> loadableDao;
@@ -55,6 +56,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public Dao<History, Integer> historyDao;
     public Dao<Filter, Integer> filterDao;
     public Dao<SiteModel, Integer> siteDao;
+    public Dao<SavedThread, Integer> savedThreadDao;
 
     private final Context context;
 
@@ -72,6 +74,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             historyDao = getDao(History.class);
             filterDao = getDao(Filter.class);
             siteDao = getDao(SiteModel.class);
+            savedThreadDao = getDao(SavedThread.class);
         } catch (SQLException e) {
             Logger.e(TAG, "Error creating dao's", e);
         }
@@ -88,6 +91,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, History.class);
             TableUtils.createTable(connectionSource, Filter.class);
             TableUtils.createTable(connectionSource, SiteModel.class);
+            TableUtils.createTable(connectionSource, SavedThread.class);
 
             SiteService.addDefaultSite();
         } catch (SQLException e) {
@@ -266,6 +270,14 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                 siteDao.executeRawNoArgs("UPDATE site SET userSettings='{}'");
             } catch (SQLException e) {
                 Logger.e(TAG, "Error upgrading to version 26", e);
+            }
+        }
+
+        if (oldVersion < 27) {
+            try {
+                TableUtils.createTable(connectionSource, SavedThread.class);
+            } catch (SQLException e) {
+                Logger.e(TAG, "Error upgrading to version 27", e);
             }
         }
     }

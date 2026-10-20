@@ -30,6 +30,7 @@ import org.floens.chan.core.presenter.SettingsPresenter;
 import org.floens.chan.core.settings.ChanSettings;
 import org.floens.chan.ui.activity.StartActivity;
 import org.floens.chan.ui.helper.CloverImportHelper;
+import org.floens.chan.ui.helper.SettingsExportHelper;
 import org.floens.chan.ui.settings.LinkSettingView;
 import org.floens.chan.ui.settings.SettingView;
 import org.floens.chan.ui.settings.SettingsController;
@@ -144,6 +145,10 @@ public class MainSettingsController extends SettingsController implements Settin
             general.add(new LinkSettingView(this,
                     R.string.settings_import_clover, R.string.settings_import_clover_description,
                     v -> new CloverImportHelper(context).start()));
+
+            general.add(new LinkSettingView(this,
+                    R.string.settings_export_settings, R.string.settings_export_settings_description,
+                    v -> new SettingsExportHelper(context).start()));
 
             groups.add(general);
         }

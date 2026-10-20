@@ -27,6 +27,16 @@ public class ChanLoaderResponse {
     public final Post.Builder op;
     public final List<Post> posts;
 
+    /**
+     * The response body as the site sent it, kept to save the thread for offline viewing.
+     */
+    public byte[] rawData;
+
+    /**
+     * If the posts come from the copy saved for offline viewing instead of the site.
+     */
+    public boolean savedCopy;
+
     public ChanLoaderResponse(Post.Builder op, List<Post> posts) {
         this.op = op;
         this.posts = posts;

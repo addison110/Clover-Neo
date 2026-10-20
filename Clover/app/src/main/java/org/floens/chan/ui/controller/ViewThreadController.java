@@ -32,6 +32,8 @@ import org.floens.chan.controller.NavigationController;
 import org.floens.chan.core.manager.WatchManager;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.model.orm.Pin;
+import org.floens.chan.core.model.orm.SavedThread;
+import org.floens.chan.core.offline.SavedThreadManager;
 import org.floens.chan.core.presenter.ThreadPresenter;
 import org.floens.chan.core.settings.ChanSettings;
 import org.floens.chan.ui.helper.HintPopup;
@@ -53,6 +55,9 @@ public class ViewThreadController extends ThreadController implements ThreadLayo
 
     @Inject
     WatchManager watchManager;
+
+    @Inject
+    SavedThreadManager savedThreadManager;
 
     private boolean pinItemPinned = false;
     private Loadable loadable;
@@ -88,6 +93,7 @@ public class ViewThreadController extends ThreadController implements ThreadLayo
         menuOverflowBuilder
                 .withSubItem(R.string.action_search, this::searchClicked)
                 .withSubItem(R.string.action_reload, this::reloadClicked)
+                .withSubItem(R.string.action_save_offline, this::saveOfflineClicked)
                 .withSubItem(R.string.action_open_browser, this::openBrowserClicked)
                 .withSubItem(R.string.action_share, this::shareClicked)
                 .withSubItem(R.string.action_scroll_to_top, this::upClicked)
@@ -118,6 +124,19 @@ public class ViewThreadController extends ThreadController implements ThreadLayo
 
     private void reloadClicked(ToolbarMenuSubItem item) {
         threadLayout.getPresenter().requestData();
+    }
+
+    private void saveOfflineClicked(ToolbarMenuSubItem item) {
+        SavedThread savedThread = savedThreadManager.findByLoadable(threadLayout.getPresenter().getLoadable());
+        boolean[] autoUpdate = {savedThread == null || savedThread.autoUpdate};
+        new AlertDialog.Builder(context)
+                .setTitle(savedThread == null ? R.string.saved_thread_save_title : R.string.saved_thread_update_title)
+                .setMultiChoiceItems(new CharSequence[]{context.getString(R.string.saved_thread_auto_update_option)},
+                        autoUpdate, (dialog, which, isChecked) -> autoUpdate[0] = isChecked)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.saved_thread_save_button, (dialog, which) ->
+                        threadLayout.getPresenter().saveForOffline(autoUpdate[0]))
+                .show();
     }
 
     private void openBrowserClicked(ToolbarMenuSubItem item) {

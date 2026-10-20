@@ -57,7 +57,7 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         CLEAR, CLEAR_ALL
     }
 
-    private static final int PIN_OFFSET = 3;
+    private static final int PIN_OFFSET = 4;
 
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_PIN = 1;
@@ -167,6 +167,10 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                         linkHolder.text.setText(R.string.drawer_history);
                         theme().historyDrawable.apply(linkHolder.image);
                         break;
+                    case 2:
+                        linkHolder.text.setText(R.string.drawer_saved_threads);
+                        theme().savedThreadsDrawable.apply(linkHolder.image);
+                        break;
                 }
                 break;
             case TYPE_BOARD_INPUT:
@@ -197,8 +201,9 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         switch (position) {
             case 0:
             case 1:
-                return TYPE_LINK;
             case 2:
+                return TYPE_LINK;
+            case 3:
                 return TYPE_HEADER;
             default:
                 return TYPE_PIN;
@@ -387,6 +392,9 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                         case 1:
                             callback.openHistory();
                             break;
+                        case 2:
+                            callback.openSavedThreads();
+                            break;
                     }
                 }
             });
@@ -435,6 +443,8 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         void onPinLongClicked(Pin pin);
 
         void openSites();
+
+        void openSavedThreads();
 
         void openHistory();
     }

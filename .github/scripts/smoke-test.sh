@@ -84,31 +84,25 @@ if [ -n "$THREAD" ]; then
     shot video-thread 6
     if tap resource-id ':id/thumbnail_view$'; then
         shot video-playing 10
-        # Tapping the video shows its controls, by default in a bar at the bottom. They hide again
-        # after a few seconds, so the views are dumped before the screenshot.
+        # Tapping the video shows its controls, by default in a bar at the bottom. Only the
+        # screenshot shows them: a UI dump waits for the screen to be idle, which it isn't while a
+        # video plays, and the controls have hidden by then.
         adb shell input tap $((WIDTH / 2)) $((HEIGHT / 2))
-        sleep 1
-        dump
-        controls="$OUT/video-controls-early.xml"
-        cp "$OUT/current.xml" "$controls"
-        shot video-controls 0
-        if python3 "$HERE/ui.py" "$controls" resource-id ':id/exo_center_controls$' > /dev/null; then
-            log "FAIL: the video controls are in the middle instead of the bottom bar"
-            failed=1
-        elif ! python3 "$HERE/ui.py" "$controls" resource-id ':id/exo_play_pause$' > /dev/null; then
-            log "NOT FOUND the video controls after tapping the video"
-        fi
+        shot video-controls 1
         sleep 4
 
         # Double-tapping the right side skips forward. Each "input" takes a while to start, so the
         # first one starts in the background and the second 100 ms later, the taps land about
-        # 100 ms apart.
+        # 100 ms apart. The app logs the skip.
         x=$((WIDTH * 3 / 4)); y=$((HEIGHT / 2))
         adb shell "input tap $x $y & sleep 0.1; input tap $x $y; wait"
         log "double tap $x $y"
         shot video-skipped 0
-        python3 "$HERE/ui.py" "$OUT/current.xml" text '^\+[0-9]+ s$' > /dev/null ||
-            log "NOT FOUND the skip label after double-tapping the video"
+        if adb logcat -d | grep -q "Double tap, skipped forward"; then
+            log "the double tap skipped forward"
+        else
+            log "NOT FOUND the skip after double-tapping the video"
+        fi
     fi
     back
     shot video-closed

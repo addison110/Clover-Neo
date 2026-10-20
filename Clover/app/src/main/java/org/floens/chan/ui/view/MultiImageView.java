@@ -577,6 +577,7 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
                         } else {
                             player.seekForward();
                         }
+                        Logger.i(TAG, back ? "Double tap, skipped back" : "Double tap, skipped forward");
                         showSeekFeedback(view, back);
                         return true;
                     }

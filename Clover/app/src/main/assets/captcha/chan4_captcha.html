@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">
+    body {
+        margin: 0;
+        padding: 12px 0;
+        font-family: sans-serif;
+        color: __text_color__;
+    }
+
+    #t-root {
+        margin: 0 auto;
+    }
+
+    #captcha-status {
+        font-size: 14px;
+        text-align: center;
+        margin: 12px auto 0 auto;
+        width: 300px;
+    }
+
+    #captcha-submit {
+        display: block;
+        margin: 12px auto 0 auto;
+        width: 300px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    </style>
+</head>
+<body>
+<div id="t-root"></div>
+<div id="captcha-status">Loading captcha&#8230;</div>
+<button id="captcha-submit" type="button" disabled>Post</button>
+
+<script type="text/javascript">
+(function() {
+var status = document.getElementById('captcha-status');
+var submit = document.getElementById('captcha-submit');
+var noop = false;
+
+function setStatus(text) {
+    status.textContent = text;
+}
+
+window.onerror = function(message, url, line) {
+    setStatus('Captcha error at ' + line + ': ' + message + ' @ ' + url);
+};
+
+function challenge() {
+    var node = document.querySelector('#t-root input[name="t-challenge"]');
+    return node ? node.value : '';
+}
+
+function response() {
+    var node = document.getElementById('t-resp');
+    return node ? node.value : '';
+}
+
+function isReady() {
+    if (!window.TCaptcha || challenge() === '') {
+        return false;
+    }
+    if (noop) {
+        return true;
+    }
+    // Slider tasks add one digit to the response per task, so wait for the last one.
+    // Other captcha kinds have no task list and fill in the response when they are done.
+    var tasksDone = !TCaptcha.tasks || TCaptcha.taskId >= TCaptcha.tasks.length;
+    return tasksDone && response() !== '';
+}
+
+window.globalOnCaptchaScriptLoaded = function() {
+    var setNoop = TCaptcha.setNoop;
+    TCaptcha.setNoop = function() {
+        noop = true;
+        setNoop.apply(TCaptcha, arguments);
+    };
+    var clearChallenge = TCaptcha.clearChallenge;
+    TCaptcha.clearChallenge = function() {
+        noop = false;
+        clearChallenge.apply(TCaptcha, arguments);
+    };
+
+    TCaptcha.init(document.getElementById('t-root'), '__board__', __thread_id__, null, __dark__);
+    TCaptcha.setErrorCb(function(error) {
+        setStatus(error);
+    });
+    setStatus('');
+    TCaptcha.onReloadClick();
+
+    setInterval(function() {
+        submit.disabled = !isReady();
+    }, 250);
+};
+
+window.globalOnCaptchaScriptError = function() {
+    setStatus('Could not load the 4chan captcha. Check your connection and tap reload.');
+};
+
+submit.addEventListener('click', function() {
+    if (isReady()) {
+        submit.disabled = true;
+        CaptchaCallback.onCaptchaEntered(challenge(), response());
+    }
+}, false);
+})();
+</script>
+
+<script src="https://s.4cdn.org/js/tcaptcha.min.7.js"
+        onload="globalOnCaptchaScriptLoaded()"
+        onerror="globalOnCaptchaScriptError()"></script>
+</body>
+</html>

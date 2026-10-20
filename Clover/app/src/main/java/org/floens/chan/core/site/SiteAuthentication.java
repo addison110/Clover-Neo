@@ -23,6 +23,7 @@ public class SiteAuthentication {
         CAPTCHA1,
         CAPTCHA2,
         CAPTCHA2_NOJS,
+        CHAN4_CAPTCHA,
         GENERIC_WEBVIEW
     }
 
@@ -49,6 +50,10 @@ public class SiteAuthentication {
         a.siteKey = siteKey;
         a.baseUrl = baseUrl;
         return a;
+    }
+
+    public static SiteAuthentication fromChan4Captcha() {
+        return new SiteAuthentication(Type.CHAN4_CAPTCHA);
     }
 
     public static SiteAuthentication fromUrl(String url, String retryText, String successText) {

@@ -26,7 +26,6 @@ import org.floens.chan.core.model.Post;
 import org.floens.chan.core.model.orm.Board;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.settings.OptionSettingItem;
-import org.floens.chan.core.settings.OptionsSetting;
 import org.floens.chan.core.settings.SettingProvider;
 import org.floens.chan.core.settings.SharedPreferencesSettingProvider;
 import org.floens.chan.core.settings.StringSetting;
@@ -38,7 +37,6 @@ import org.floens.chan.core.site.SiteBase;
 import org.floens.chan.core.site.SiteEndpoints;
 import org.floens.chan.core.site.SiteIcon;
 import org.floens.chan.core.site.SiteRequestModifier;
-import org.floens.chan.core.site.SiteSetting;
 import org.floens.chan.core.site.SiteUrlHandler;
 import org.floens.chan.core.site.common.CommonReplyHttpCall;
 import org.floens.chan.core.site.common.DefaultPostParser;
@@ -54,7 +52,6 @@ import org.floens.chan.utils.AndroidUtils;
 import org.floens.chan.utils.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -153,8 +150,6 @@ public class Chan4 extends SiteBase {
     };
 
     private static final String TAG = "Chan4";
-
-    private static final String CAPTCHA_KEY = "6Ldp2bsSAAAAAAJ5uyx_lx34lJeEpTLVkP5k04qc";
 
     private static final Random random = new Random();
 
@@ -387,14 +382,7 @@ public class Chan4 extends SiteBase {
             if (isLoggedIn()) {
                 return SiteAuthentication.fromNone();
             } else {
-                switch (captchaType.get()) {
-                    case V2JS:
-                        return SiteAuthentication.fromCaptcha2(CAPTCHA_KEY, "https://boards.4chan.org");
-                    case V2NOJS:
-                        return SiteAuthentication.fromCaptcha2nojs(CAPTCHA_KEY, "https://boards.4chan.org");
-                    default:
-                        throw new IllegalArgumentException();
-                }
+                return SiteAuthentication.fromChan4Captcha();
             }
         }
 
@@ -472,8 +460,6 @@ public class Chan4 extends SiteBase {
         }
     }
 
-    private OptionsSetting<CaptchaType> captchaType;
-
     public Chan4() {
         // we used these before multisite, and lets keep using them.
         SettingProvider p = new SharedPreferencesSettingProvider(AndroidUtils.getPreferences());
@@ -482,25 +468,6 @@ public class Chan4 extends SiteBase {
         // token was renamed, before it meant the username, now it means the token returned
         // from the server that the cookie is set to.
         passToken = new StringSetting(p, "preference_pass_id", "");
-    }
-
-    @Override
-    public void initializeSettings() {
-        super.initializeSettings();
-
-        captchaType = new OptionsSetting<>(settingsProvider,
-                "preference_captcha_type",
-                CaptchaType.class, CaptchaType.V2NOJS);
-    }
-
-    @Override
-    public List<SiteSetting> settings() {
-        return Arrays.asList(
-                SiteSetting.forOption(
-                        captchaType,
-                        "Captcha type",
-                        Arrays.asList("Javascript", "Noscript"))
-        );
     }
 
     @Override

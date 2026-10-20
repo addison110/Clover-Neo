@@ -97,4 +97,10 @@ for _ in $(seq 8); do
 done
 shot after-back
 
+# The launcher icon, in the app drawer
+adb shell input keyevent KEYCODE_HOME
+sleep 2
+adb shell input swipe $((WIDTH / 2)) $((HEIGHT * 4 / 5)) $((WIDTH / 2)) $((HEIGHT / 5)) 300
+shot app-drawer 3
+
 check_crashes "$PKG" && [ "$failed" = 0 ] && log "PASS: no crashes"

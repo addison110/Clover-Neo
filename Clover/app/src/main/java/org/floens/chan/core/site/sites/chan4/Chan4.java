@@ -19,7 +19,6 @@ package org.floens.chan.core.site.sites.chan4;
 
 import android.text.TextUtils;
 import android.webkit.CookieManager;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
@@ -311,18 +310,12 @@ public class Chan4 extends SiteBase {
             }
 
             if (httpCall instanceof Chan4ReplyCall) {
-                // 4chan checks the captcha answer against the cookies its captcha set in the
-                // captcha WebView, and Cloudflare ties its cookie to the WebView's user agent,
-                // so send the post like the WebView would.
+                // 4chan only accepts the captcha answer together with the cookies its captcha
+                // set in the captcha WebView.
                 String webViewCookies = CookieManager.getInstance().getCookie("https://sys.4chan.org/");
                 if (!TextUtils.isEmpty(webViewCookies)) {
                     cookies.add(webViewCookies);
                 }
-                requestBuilder.header("User-Agent",
-                        WebSettings.getDefaultUserAgent(AndroidUtils.getAppContext()));
-                requestBuilder.header("Origin", "https://boards.4chan.org");
-                Loadable loadable = ((Chan4ReplyCall) httpCall).reply.loadable;
-                requestBuilder.header("Referer", URL_HANDLER.desktopUrl(loadable, null));
             }
 
             if (!cookies.isEmpty()) {

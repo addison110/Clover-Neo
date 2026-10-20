@@ -65,10 +65,7 @@ public class HttpCallManager {
             }
         }
 
-        // A site can send its own user agent, for example the WebView's one
-        if (requestBuilder.build().header("User-Agent") == null) {
-            requestBuilder.header("User-Agent", userAgentProvider.getUserAgent());
-        }
+        requestBuilder.header("User-Agent", userAgentProvider.getUserAgent());
         Request request = requestBuilder.build();
 
         client.newCall(request).enqueue(httpCall);

@@ -26,6 +26,8 @@ The build flavors are `default` (updates itself from GitHub releases), `dev` and
 
 To sign release builds, create `Clover/app/keys.properties`, see `Clover/app/build.gradle`.
 
+To get test APKs of a branch without building locally, run **Actions → Test build → Run workflow** on GitHub and pick the branch. The APKs are in the run's `test-apks-<branch>-<commit>` artifact. Every pull request's CI run also keeps its APKs in the `apks` artifact.
+
 ## Releasing
 The in-app updater of the `default` flavor reads the latest GitHub release of this repository.
 

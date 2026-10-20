@@ -21,8 +21,28 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      # Without the release key the release APK is signed with the debug key, so the
-      # smoke test can run the minified build that ships
+      # Sign the release APK with the release key so it installs over the official app.
+      # Without the secrets (pull requests from forks) it is signed with the debug key,
+      # which is still enough for the smoke test to run the minified build that ships
+      - name: Set up the release key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::warning::No release key secrets, the release APK is signed with the debug key"
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+          {
+            echo "keystoreFile=$RUNNER_TEMP/release.p12"
+            echo "keystorePass=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPass=$KEY_PASSWORD"
+          } > app/keys.properties
+
       - name: Check and build APKs
         run: ./gradlew check assembleDebug assembleDefaultRelease --console plain
 

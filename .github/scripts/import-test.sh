@@ -86,7 +86,7 @@ use_app "$NEO_PKG"
 adb install -r "$NEO_APK" > /dev/null || fail "could not install Clover Neo"
 adb shell am start -W -n "$ACTIVITY" > /dev/null
 shot neo-launch 5
-tap resource-id 'permission_allow_button$' && shot notification-permission-allowed
+[ "$API" -ge 33 ] && tap resource-id 'permission_allow_button$' && shot notification-permission-allowed
 
 open_drawer
 shot neo-drawer

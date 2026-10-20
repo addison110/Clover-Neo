@@ -65,6 +65,8 @@ jobs:
   smoke-test:
     needs: build
     runs-on: ubuntu-latest
+    # These take about 5 minutes, a hung emulator would otherwise hold the run for 6 hours
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -122,6 +124,8 @@ jobs:
   import-test:
     needs: build
     runs-on: ubuntu-latest
+    # These take about 5 minutes, a hung emulator would otherwise hold the run for 6 hours
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 

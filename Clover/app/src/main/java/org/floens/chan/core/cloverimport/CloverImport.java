@@ -52,7 +52,7 @@ public class CloverImport {
     private static final String STAGED_PREFERENCES = "clover-import-preferences.xml";
 
     // These belong to the original app and don't work in Clover Neo
-    private static final List<String> SKIPPED_PREFERENCES = Arrays.asList(
+    static final List<String> SKIPPED_PREFERENCES = Arrays.asList(
             "preference_image_save_tree_uri",
             "update_check_time"
     );

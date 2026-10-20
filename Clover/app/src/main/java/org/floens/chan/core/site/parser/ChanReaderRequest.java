@@ -19,6 +19,9 @@ package org.floens.chan.core.site.parser;
 
 import android.util.JsonReader;
 
+import com.android.volley.NetworkResponse;
+import com.android.volley.Response;
+
 import org.floens.chan.core.database.DatabaseManager;
 import org.floens.chan.core.database.DatabaseSavedReplyManager;
 import org.floens.chan.core.manager.FilterEngine;
@@ -124,6 +127,15 @@ public class ChanReaderRequest extends JsonReaderRequest<ChanLoaderResponse> {
             throw new IllegalArgumentException("Unknown mode");
         }
         return url;
+    }
+
+    @Override
+    protected Response<ChanLoaderResponse> parseNetworkResponse(NetworkResponse response) {
+        Response<ChanLoaderResponse> parsed = super.parseNetworkResponse(response);
+        if (parsed.isSuccess()) {
+            parsed.result.rawData = response.data;
+        }
+        return parsed;
     }
 
     @Override

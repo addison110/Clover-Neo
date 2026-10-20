@@ -19,6 +19,7 @@ package org.floens.chan.core.cache;
 
 import androidx.annotation.MainThread;
 
+import org.floens.chan.core.offline.OfflineStore;
 import org.floens.chan.utils.Logger;
 import org.floens.chan.utils.Time;
 
@@ -43,11 +44,13 @@ public class FileCache implements FileCacheDownloader.Callback {
     protected OkHttpClient httpClient;
 
     private final CacheHandler cacheHandler;
+    private final OfflineStore offlineStore;
 
     private List<FileCacheDownloader> downloaders = new ArrayList<>();
 
-    public FileCache(File directory, long maxSize, String userAgent) {
+    public FileCache(File directory, long maxSize, String userAgent, OfflineStore offlineStore) {
         this.userAgent = userAgent;
+        this.offlineStore = offlineStore;
 
         httpClient = new OkHttpClient.Builder()
                 .connectTimeout(TIMEOUT, TimeUnit.MILLISECONDS)
@@ -87,6 +90,14 @@ public class FileCache implements FileCacheDownloader.Callback {
             return runningDownloaderForKey;
         }
 
+        // Files of threads saved for offline viewing
+        File savedFile = offlineStore.findMedia(url);
+        if (savedFile != null) {
+            listener.onSuccess(savedFile);
+            listener.onEnd();
+            return null;
+        }
+
         File file = get(url);
         if (file.exists()) {
             handleFileImmediatelyAvailable(listener, file);
@@ -116,7 +127,14 @@ public class FileCache implements FileCacheDownloader.Callback {
     }
 
     public boolean exists(String key) {
-        return cacheHandler.exists(key);
+        return cacheHandler.exists(key) || isSavedOffline(key);
+    }
+
+    /**
+     * If the file belongs to a thread saved for offline viewing, and needs no download.
+     */
+    public boolean isSavedOffline(String url) {
+        return offlineStore.findMedia(url) != null;
     }
 
     public File get(String key) {

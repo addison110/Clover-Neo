@@ -19,9 +19,7 @@ package org.floens.chan.core.site;
 
 import android.util.SparseArray;
 
-import org.floens.chan.core.site.sites.arisuchan.Arisuchan;
 import org.floens.chan.core.site.sites.chan4.Chan4;
-import org.floens.chan.core.site.sites.chan8.Chan8;
 import org.floens.chan.core.site.sites.dvach.Dvach;
 import org.floens.chan.core.site.sites.lainchan.Lainchan;
 import org.floens.chan.core.site.sites.sushichan.Sushichan;
@@ -38,9 +36,7 @@ public class SiteRegistry {
 
     static {
         URL_HANDLERS.add(Chan4.URL_HANDLER);
-        URL_HANDLERS.add(Chan8.URL_HANDLER);
         URL_HANDLERS.add(Lainchan.URL_HANDLER);
-        URL_HANDLERS.add(Arisuchan.URL_HANDLER);
         URL_HANDLERS.add(Sushichan.URL_HANDLER);
         URL_HANDLERS.add(Dvach.URL_HANDLER);
     }
@@ -49,11 +45,9 @@ public class SiteRegistry {
         // This id-siteclass mapping is used to look up the correct site class at deserialization.
         // This differs from the Site.id() id, that id is used for site instance linking, this is just to
         // find the correct class to use.
+        // Don't reuse an id, 1 (8chan) and 3 (arisuchan) were removed and are still in old databases.
         SITE_CLASSES.put(0, Chan4.class);
-
-        SITE_CLASSES.put(1, Chan8.class);
         SITE_CLASSES.put(2, Lainchan.class);
-        SITE_CLASSES.put(3, Arisuchan.class);
         SITE_CLASSES.put(4, Sushichan.class);
         SITE_CLASSES.put(5, Dvach.class);
     }

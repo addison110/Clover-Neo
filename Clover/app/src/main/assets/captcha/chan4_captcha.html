@@ -75,6 +75,13 @@ function isReady() {
 }
 
 window.globalOnCaptchaScriptLoaded = function() {
+    if (!window.TCaptcha) {
+        // Old WebView versions can't run 4chan's script, like the one built into Android 6
+        setStatus('This phone\'s WebView is too old for the 4chan captcha. ' +
+            'Update "Android System WebView" from the Play Store and try again.');
+        return;
+    }
+
     var setNoop = TCaptcha.setNoop;
     TCaptcha.setNoop = function() {
         noop = true;

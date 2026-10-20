@@ -64,11 +64,12 @@ if [ -n "$THREAD" ]; then
         # Submit only opens the captcha, nothing is posted until the captcha's own Post button is
         # tapped, and this test never taps it
         if tap resource-id ':id/submit$'; then
+            # The captcha's own text isn't in the UI dump, see the screenshot for what it shows
             shot reply-captcha 10
-            if python3 "$HERE/ui.py" "$OUT/current.xml" text 'get captcha|verify you are human|verification not required|wait' > /dev/null; then
-                log "the 4chan captcha shows"
+            if python3 "$HERE/ui.py" "$OUT/current.xml" class 'WebView$' > /dev/null; then
+                log "the captcha view shows"
             else
-                log "NOT FOUND the 4chan captcha"
+                log "NOT FOUND the captcha view"
             fi
             back
         fi

@@ -17,21 +17,46 @@
  */
 package org.floens.chan.core.net;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.toolbox.HttpResponse;
 import com.android.volley.toolbox.HurlStack;
 
+import org.floens.chan.core.offline.OfflineStore;
 import org.floens.chan.core.settings.ChanSettings;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.Collections;
+import java.util.Map;
 
 public class ProxiedHurlStack extends HurlStack {
     private final String userAgent;
+    private final OfflineStore offlineStore;
 
-    public ProxiedHurlStack(String userAgent) {
+    public ProxiedHurlStack(String userAgent, OfflineStore offlineStore) {
         super();
         this.userAgent = userAgent;
+        this.offlineStore = offlineStore;
+    }
+
+    @Override
+    public HttpResponse executeRequest(Request<?> request, Map<String, String> additionalHeaders)
+            throws IOException, AuthFailureError {
+        // Thumbnails and flags of threads saved for offline viewing
+        if (request.getMethod() == Request.Method.GET) {
+            File savedFile = offlineStore.findMedia(request.getUrl());
+            if (savedFile != null && savedFile.exists()) {
+                return new HttpResponse(HttpURLConnection.HTTP_OK, Collections.emptyList(),
+                        (int) savedFile.length(), new FileInputStream(savedFile));
+            }
+        }
+
+        return super.executeRequest(request, additionalHeaders);
     }
 
     @Override

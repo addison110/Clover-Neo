@@ -74,6 +74,7 @@ public class DatabaseManager {
     private final DatabaseBoardManager databaseBoardManager;
     private final DatabaseSiteManager databaseSiteManager;
     private final DatabaseHideManager databaseHideManager;
+    private final DatabaseSavedThreadManager databaseSavedThreadManager;
 
     @Inject
     public DatabaseManager(Context context) {
@@ -96,6 +97,7 @@ public class DatabaseManager {
         databaseBoardManager = new DatabaseBoardManager(this, helper);
         databaseSiteManager = new DatabaseSiteManager(this, helper);
         databaseHideManager = new DatabaseHideManager(this, helper);
+        databaseSavedThreadManager = new DatabaseSavedThreadManager(this, helper, databaseLoadableManager);
         EventBus.getDefault().register(this);
     }
 
@@ -134,6 +136,10 @@ public class DatabaseManager {
 
     public DatabaseSiteManager getDatabaseSiteManager() {
         return databaseSiteManager;
+    }
+
+    public DatabaseSavedThreadManager getDatabaseSavedThreadManager() {
+        return databaseSavedThreadManager;
     }
 
     public DatabaseHideManager getDatabaseHideManager() {
@@ -197,6 +203,7 @@ public class DatabaseManager {
             o += "History rows: " + helper.historyDao.countOf() + "\n";
             o += "Filter rows: " + helper.filterDao.countOf() + "\n";
             o += "Site rows: " + helper.siteDao.countOf() + "\n";
+            o += "SavedThread rows: " + helper.savedThreadDao.countOf() + "\n";
         } catch (SQLException e) {
             e.printStackTrace();
         }

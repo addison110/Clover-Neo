@@ -27,6 +27,7 @@ import org.floens.chan.core.exception.ChanLoaderException;
 import org.floens.chan.core.model.ChanThread;
 import org.floens.chan.core.model.Post;
 import org.floens.chan.core.model.orm.Loadable;
+import org.floens.chan.core.offline.SavedThreadManager;
 import org.floens.chan.core.site.parser.ChanReader;
 import org.floens.chan.core.site.parser.ChanReaderRequest;
 import org.floens.chan.ui.helper.PostHelper;
@@ -44,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import static org.floens.chan.Chan.inject;
+import static org.floens.chan.Chan.injector;
 
 /**
  * A ChanThreadLoader is the loader for Loadables.
@@ -66,6 +68,8 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
     private ChanThread thread;
 
     private ChanLoaderRequest request;
+    // Changes with every request, to drop a saved copy that arrives after a newer request
+    private int requestId;
 
     private int currentTimeout = 0;
     private int lastPostCount;
@@ -235,6 +239,8 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
     private ChanLoaderRequest getData() {
         Logger.d(TAG, "Requested " + loadable.boardCode + ", " + loadable.no);
 
+        requestId++;
+
         List<Post> cached = thread == null ? new ArrayList<Post>() : thread.posts;
 
         ChanReader chanReader = loadable.getSite().chanReader();
@@ -265,6 +271,11 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
         thread.posts.addAll(response.posts);
 
         processResponse(response);
+        thread.savedCopy = response.savedCopy;
+
+        if (loadable.isThreadMode() && !response.savedCopy) {
+            injector().instance(SavedThreadManager.class).onThreadLoaded(loadable, response);
+        }
 
         if (TextUtils.isEmpty(loadable.title)) {
             loadable.setTitle(PostHelper.getTitle(thread.op, loadable));
@@ -327,6 +338,36 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
 
         ChanLoaderException loaderException = new ChanLoaderException(error);
 
+        // Show the copy saved for offline viewing when the thread can't be loaded at all, or
+        // when it's gone from the site
+        if (loadable.isThreadMode() && (thread == null || loaderException.isNotFound())) {
+            SavedThreadManager savedThreadManager = injector().instance(SavedThreadManager.class);
+            if (savedThreadManager.hasSavedCopy(loadable)) {
+                int id = requestId;
+                List<Post> cached = thread == null ? new ArrayList<>() : thread.posts;
+                savedThreadManager.loadSavedCopy(loadable, cached, response -> {
+                    if (id != requestId || request != null) {
+                        // A newer request was started
+                        return;
+                    }
+
+                    if (response == null || response.posts.isEmpty()) {
+                        notifyError(loaderException);
+                    } else {
+                        if (loaderException.isNotFound() && response.op != null) {
+                            response.op.archived(true);
+                        }
+                        onResponse(response);
+                    }
+                });
+                return;
+            }
+        }
+
+        notifyError(loaderException);
+    }
+
+    private void notifyError(ChanLoaderException loaderException) {
         for (ChanLoaderCallback l : listeners) {
             l.onChanLoaderError(loaderException);
         }

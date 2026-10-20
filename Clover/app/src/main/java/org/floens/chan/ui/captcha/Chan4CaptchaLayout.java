@@ -20,6 +20,7 @@ package org.floens.chan.ui.captcha;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
+import android.view.MotionEvent;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
@@ -63,8 +64,6 @@ public class Chan4CaptchaLayout extends WebView implements AuthenticationLayoutI
     public void initialize(Site site, AuthenticationLayoutCallback callback) {
         this.callback = callback;
 
-        requestDisallowInterceptTouchEvent(true);
-
         WebSettings settings = getSettings();
         settings.setJavaScriptEnabled(true);
         // The captcha keeps its ticket in localStorage.
@@ -96,6 +95,17 @@ public class Chan4CaptchaLayout extends WebView implements AuthenticationLayoutI
         setBackgroundColor(0x00000000);
 
         addJavascriptInterface(new CaptchaInterface(this), "CaptchaCallback");
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // Keep the drag on the captcha's slider from also swiping the page closed. This has to
+        // be asked again for every touch, the parent forgets it when a gesture ends.
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN && getParent() != null) {
+            getParent().requestDisallowInterceptTouchEvent(true);
+        }
+        return super.onTouchEvent(event);
     }
 
     private static boolean isCaptchaHost(String host) {

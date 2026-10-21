@@ -408,6 +408,9 @@ public class ImageViewerPresenter implements MultiImageView.Callback, ViewPager.
     }
 
     private boolean videoAutoLoad(PostImage postImage) {
+        if (fileCache.isSavedOffline(postImage.imageUrl.toString())) {
+            return true;
+        }
         return imageAutoLoad(postImage) && shouldLoadForNetworkType(ChanSettings.videoAutoLoadNetwork.get());
     }
 

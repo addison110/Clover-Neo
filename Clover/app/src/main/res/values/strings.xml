@@ -55,6 +55,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <item quantity="other">%d replies</item>
     </plurals>
 
+    <plurals name="saved_thread_files">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+
+    <plurals name="saved_thread_missing">
+        <item quantity="one">%d file could not be downloaded</item>
+        <item quantity="other">%d files could not be downloaded</item>
+    </plurals>
+
     <plurals name="image">
         <item quantity="one">%d image</item>
         <item quantity="other">%d images</item>
@@ -88,6 +98,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="card_stats">%1$dR %2$dI</string>
 
     <string name="action_reload">Reload</string>
+    <string name="action_save_offline">Save for offline</string>
     <string name="action_pin">Bookmark</string>
     <string name="action_open_browser">Open in a browser</string>
     <string name="action_share">Share</string>
@@ -355,6 +366,26 @@ Enable \"Play videos with external player\" in the settings to play videos with 
 
     <string name="drawer_sites">Setup sites</string>
     <string name="drawer_history">History</string>
+    <string name="drawer_saved_threads">Saved threads</string>
+
+    <string name="saved_threads_screen">Saved threads</string>
+    <string name="saved_threads_empty_info">No saved threads\n\nUse \"Save for offline\" in a thread\'s menu to keep it and its images on this device</string>
+    <string name="saved_thread_save_title">Save this thread and its images for offline viewing?</string>
+    <string name="saved_thread_update_title">Update the saved copy of this thread?</string>
+    <string name="saved_thread_auto_update_option">Keep it updated with new posts</string>
+    <string name="saved_thread_save_button">Save</string>
+    <string name="saved_thread_saving">Saving the thread for offline viewing</string>
+    <string name="saved_thread_failed">Could not save the thread</string>
+    <string name="saved_thread_notification_saving">Saving thread for offline viewing</string>
+    <string name="saved_thread_notification_progress">%1$d/%2$d files</string>
+    <string name="saved_thread_notification_done">Thread saved for offline viewing</string>
+    <string name="saved_thread_showing_offline">Can\'t reach the site, showing the saved copy</string>
+    <string name="saved_thread_showing_gone">The thread is gone from the site, showing the saved copy</string>
+    <string name="saved_thread_auto_update">Auto-update</string>
+    <string name="saved_thread_not_downloaded">Not on this device, open the thread and save it again</string>
+    <string name="saved_thread_saving_now">Saving…</string>
+    <string name="saved_thread_delete_confirm">Delete the saved copy of this thread?</string>
+    <string name="saved_thread_delete_button">Delete</string>
 
     <!-- Main settings -->
     <string name="settings_screen">Settings</string>
@@ -370,10 +401,12 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="settings_media">Media</string>
     <string name="settings_media_description">Save location, auto loading, etc.</string>
     <string name="settings_filters">Filters</string>
-    <string name="settings_import_clover">Import from Clover</string>
-    <string name="settings_import_clover_description">Sites, boards, bookmarks, history, filters and settings from a backup of the original Clover app</string>
+    <string name="settings_import_clover">Import backup</string>
+    <string name="settings_import_clover_description">Sites, boards, bookmarks, history, filters and settings from a backup of Clover or Clover Neo</string>
+    <string name="settings_export_settings">Export settings</string>
+    <string name="settings_export_settings_description">Save the sites, boards, bookmarks, history, filters and settings to a backup file. It can hold your site logins, so keep it private.</string>
     <string name="import_clover_reading">Reading backup…</string>
-    <string name="import_clover_confirm_title">Import from Clover?</string>
+    <string name="import_clover_confirm_title">Import this backup?</string>
     <string name="import_clover_confirm">This replaces the sites, boards, bookmarks, history, filters and settings in Clover Neo with the ones from the backup. Clover Neo restarts afterwards.</string>
     <string name="import_clover_import">Import</string>
     <string name="import_clover_error_title">Can\'t import this file</string>
@@ -381,6 +414,9 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="import_clover_encrypted">This backup is encrypted. Create it again and leave the password empty.</string>
     <string name="import_clover_no_data">This backup has no Clover data. Make sure it was created with:\nadb backup -f clover.ab org.floens.chan\n\nOpen Clover once before creating the backup, Android leaves out apps that were force stopped. Some phones don\'t allow app backups at all.</string>
     <string name="import_clover_failed">Reading the backup failed.</string>
+    <string name="export_settings_writing">Exporting…</string>
+    <string name="export_settings_done">Settings exported</string>
+    <string name="export_settings_failed">Exporting failed</string>
 
     <!-- Thread watcher -->
     <string name="setting_watch_summary_enabled">Watching bookmarked threads</string>

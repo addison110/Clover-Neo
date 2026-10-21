@@ -3,9 +3,17 @@ name: Build
 on:
   push:
     branches: [dev]
+    paths-ignore: ['**.md', 'docs/**']
   pull_request:
+    paths-ignore: ['**.md', 'docs/**']
+
+# A new push to a pull request cancels the run for the previous one, runs on dev all finish
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
+  # Only the release APK, so the emulator tests can start without waiting for the checks
   build:
     runs-on: ubuntu-latest
     defaults:
@@ -43,19 +51,42 @@ jobs:
             echo "keyPass=$KEY_PASSWORD"
           } > app/keys.properties
 
-      - name: Check and build APKs
-        run: ./gradlew check assembleDebug assembleDefaultRelease --console plain
+      - name: Build the release APK
+        run: ./gradlew assembleDefaultRelease --console plain
 
       - uses: actions/upload-artifact@v7
         with:
-          name: apks
-          path: |
-            Clover/app/build/outputs/apk/*/debug/*.apk
-            Clover/app/build/outputs/apk/default/release/*.apk
+          name: release-apk
+          path: Clover/app/build/outputs/apk/default/release/*.apk
+
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Clover
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Check and build the debug APKs
+        run: ./gradlew check assembleDebug --console plain
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: debug-apks
+          path: Clover/app/build/outputs/apk/*/debug/*.apk
 
   smoke-test:
     needs: build
     runs-on: ubuntu-latest
+    # These take about 5 minutes, a hung emulator would otherwise hold the run for 6 hours
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +97,7 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: apks
+          name: release-apk
           path: apks
 
       - name: Enable KVM
@@ -93,6 +124,7 @@ jobs:
           done
           exit 1
 
+
       - name: Run smoke test on the emulator
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
@@ -101,7 +133,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash .github/scripts/smoke-test.sh apks/default/release/app-default-release.apk smoke-test-results
+          script: bash .github/scripts/smoke-test.sh apks/app-default-release.apk smoke-test-results
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -112,12 +144,14 @@ jobs:
   import-test:
     needs: build
     runs-on: ubuntu-latest
+    # These take about 5 minutes, a hung emulator would otherwise hold the run for 6 hours
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/download-artifact@v8
         with:
-          name: apks
+          name: release-apk
           path: apks
 
       - name: Enable KVM
@@ -144,6 +178,7 @@ jobs:
           done
           exit 1
 
+
       # Imports an adb backup of the original Clover app
       - name: Run import test on the emulator
         uses: reactivecircus/android-emulator-runner@v2.38.0
@@ -153,7 +188,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: bash .github/scripts/import-test.sh apks/default/release/app-default-release.apk import-test-results
+          script: bash .github/scripts/import-test.sh apks/app-default-release.apk import-test-results
 
       - uses: actions/upload-artifact@v7
         if: always()

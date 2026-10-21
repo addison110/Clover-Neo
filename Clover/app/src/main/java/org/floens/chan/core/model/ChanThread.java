@@ -27,6 +27,10 @@ public class ChanThread {
     public Post op;
     public boolean closed = false;
     public boolean archived = false;
+    /**
+     * If the posts come from the copy saved for offline viewing instead of the site.
+     */
+    public boolean savedCopy = false;
 
     public ChanThread(Loadable loadable, List<Post> posts) {
         this.loadable = loadable;

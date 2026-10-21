@@ -6,9 +6,9 @@
 
 [Releases](https://github.com/addison110/Clover-Neo/releases) | [Issues](https://github.com/addison110/Clover-Neo/issues)
 
-Clover Neo is a maintained fork of [Clover](https://github.com/Floens/Clover), a fast Android app for browsing imageboards such as 4chan and 8chan. It adds inline replying, thread watching, notifications, themes, pass support, filters and a whole lot more. Clover Neo is licensed under the GPL and will always be free.
+Clover Neo is a maintained fork of [Clover](https://github.com/Floens/Clover), a fast Android app for browsing imageboards such as 4chan. It adds inline replying, thread watching, notifications, themes, pass support, filters and a whole lot more. Clover Neo is licensed under the GPL and will always be free.
 
-Clover Neo installs as its own app (`io.github.addison110.cloverneo`) and can be installed next to the original Clover. Settings, bookmarks and history are not carried over from Clover.
+Clover Neo installs as its own app (`io.github.addison110.cloverneo`) and can be installed next to the original Clover. To bring over your sites, boards, bookmarks, history, filters and settings, use "Import from Clover" in the settings with an adb backup of Clover.
 
 Requires Android 6.0 or newer.
 
@@ -27,6 +27,8 @@ cd Clover
 The build flavors are `default` (updates itself from GitHub releases), `dev` and `fdroid` (no in-app updater).
 
 To sign release builds, create `Clover/app/keys.properties`, see `Clover/app/build.gradle`.
+
+To get test APKs of a branch without building locally, run **Actions → Test build → Run workflow** on GitHub and pick the branch. The APKs are in the run's `test-apks-<branch>-<commit>` artifact. Every pull request's CI run also keeps its APKs, in the `release-apk` and `debug-apks` artifacts.
 
 ## Releasing
 The in-app updater of the `default` flavor reads the latest GitHub release of this repository.

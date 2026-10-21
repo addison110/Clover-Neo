@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# End-to-end test of "Import from Clover" on a running emulator.
+# End-to-end test of "Import backup" with a backup of the original Clover app on a running emulator.
 #
 # Sets up 4chan in the original Clover app, makes an "adb backup" of it, imports that backup in
 # Clover Neo and checks that Neo then has the site. Saves a screenshot and UI dump of every step
@@ -73,7 +73,15 @@ done
 kill $BACKUP 2> /dev/null && fail "adb backup did not finish"
 SIZE=$(stat -c %s "$OUT/clover.ab" 2> /dev/null || echo 0)
 log "backup is $SIZE bytes"
-[ "$SIZE" -gt 4096 ] || fail "the backup is empty, see the screenshots"
+# The backup is compressed and can be only a few KB, check that Clover's database is in it. An
+# empty backup is just the header.
+python3 -I - "$OUT/clover.ab" <<'PY' || fail "the backup has no Clover database, see the screenshots"
+import io, sys, tarfile, zlib
+header = open(sys.argv[1], 'rb').read().split(b'\n', 4)
+data = zlib.decompress(header[4]) if header[2] == b'1' else header[4]
+names = tarfile.open(fileobj=io.BytesIO(data)).getnames()
+sys.exit(0 if 'apps/org.floens.chan/db/ChanDB' in names else 1)
+PY
 
 # Put it in Downloads, where the file picker finds it
 adb push "$OUT/clover.ab" /sdcard/Download/clover.ab > /dev/null || fail "could not push the backup"
@@ -86,12 +94,12 @@ use_app "$NEO_PKG"
 adb install -r "$NEO_APK" > /dev/null || fail "could not install Clover Neo"
 adb shell am start -W -n "$ACTIVITY" > /dev/null
 shot neo-launch 5
-tap resource-id 'permission_allow_button$' && shot notification-permission-allowed
+[ "$API" -ge 33 ] && tap resource-id 'permission_allow_button$' && shot notification-permission-allowed
 
 open_drawer
 shot neo-drawer
 tap text '^Settings$' && shot settings
-tap text '^Import from Clover$' || fail "no Import from Clover setting"
+tap text '^Import backup$' || fail "no Import backup setting"
 shot file-picker 4
 
 # The picker opens on recent files or the last folder, go to Downloads when the file isn't shown

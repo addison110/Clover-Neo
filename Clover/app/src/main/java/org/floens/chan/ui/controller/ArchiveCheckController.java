@@ -24,7 +24,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import org.floens.chan.R;
 import org.floens.chan.controller.Controller;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.site.archive.Archive;

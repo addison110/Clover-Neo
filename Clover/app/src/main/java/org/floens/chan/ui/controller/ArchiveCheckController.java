@@ -27,24 +27,27 @@ import android.webkit.WebViewClient;
 import org.floens.chan.controller.Controller;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.site.archive.Archive;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 /**
- * Shows the archive's page for a thread, so the user can get past the archive's Cloudflare
- * check. The check leaves a cookie that the app then sends when it loads the thread itself.
+ * Opens the archive's API page for a thread, so the user can get past the archive's Cloudflare
+ * check, which only guards the API. Once the page shows the thread's JSON, that JSON is handed
+ * back to be shown. The check also leaves a cookie for the app's later requests.
  */
 public class ArchiveCheckController extends Controller {
     private final Archive archive;
     private final Loadable loadable;
-    private final Runnable onPassed;
+    private final Callback callback;
 
     private WebView webView;
     private boolean passed;
 
-    public ArchiveCheckController(Context context, Archive archive, Loadable loadable, Runnable onPassed) {
+    public ArchiveCheckController(Context context, Archive archive, Loadable loadable, Callback callback) {
         super(context);
         this.archive = archive;
         this.loadable = loadable;
-        this.onPassed = onPassed;
+        this.callback = callback;
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -64,16 +67,32 @@ public class ArchiveCheckController extends Controller {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
-                if (!passed && !Archive.isCheckPage(view.getTitle())) {
-                    passed = true;
-                    CookieManager.getInstance().flush();
-                    navigationController.popController();
-                    onPassed.run();
+                if (passed) {
+                    return;
                 }
+                // The check page is HTML, the thread is JSON
+                view.evaluateJavascript("document.body ? document.body.innerText : ''", result -> {
+                    String text = unquote(result);
+                    if (!passed && text.trim().startsWith("{")) {
+                        passed = true;
+                        CookieManager.getInstance().flush();
+                        navigationController.popController();
+                        callback.onArchiveJson(archive, text);
+                    }
+                });
             }
         });
-        webView.loadUrl(archive.webThreadUrl(loadable).toString());
+        webView.loadUrl(archive.apiThreadUrl(loadable).toString());
         view = webView;
+    }
+
+    // evaluateJavascript gives the result as a JSON string literal
+    private static String unquote(String result) {
+        try {
+            return new JSONArray("[" + result + "]").optString(0, "");
+        } catch (JSONException e) {
+            return "";
+        }
     }
 
     @Override
@@ -81,5 +100,9 @@ public class ArchiveCheckController extends Controller {
         super.onDestroy();
         webView.stopLoading();
         webView.destroy();
+    }
+
+    public interface Callback {
+        void onArchiveJson(Archive archive, String json);
     }
 }

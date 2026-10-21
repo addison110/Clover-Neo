@@ -18,6 +18,7 @@
 package org.floens.chan.core.site.loader;
 
 import android.text.TextUtils;
+import android.util.JsonReader;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -38,6 +39,7 @@ import org.floens.chan.utils.AndroidUtils;
 import org.floens.chan.utils.Logger;
 import org.floens.chan.utils.Time;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -419,6 +421,48 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
         });
 
         volleyRequestQueue.add(archiveRequest);
+    }
+
+    /**
+     * Shows the thread from JSON that the archive already sent, through the archive check page.
+     */
+    public void loadArchiveJson(Archive archive, String json) {
+        clearTimer();
+        if (request != null) {
+            request.getVolleyRequest().cancel();
+            request = null;
+        }
+        cancelArchiveRequest();
+
+        int id = ++requestId;
+        List<Post> cached = thread == null ? new ArrayList<>() : thread.posts;
+        ArchiveThreadRequest reader = new ArchiveThreadRequest(AndroidUtils.getAppContext(), archive,
+                loadable, cached, null, null);
+        executor.execute(() -> {
+            ChanLoaderResponse response = null;
+            try (JsonReader jsonReader = new JsonReader(new StringReader(json))) {
+                response = reader.readJson(jsonReader);
+            } catch (Exception e) {
+                Logger.e(TAG, "Could not read " + loadable + " from " + archive.name, e);
+            }
+
+            ChanLoaderResponse result = response;
+            AndroidUtils.runOnUiThread(() -> {
+                if (id != requestId || request != null) {
+                    return;
+                }
+                if (result == null || result.posts.isEmpty()) {
+                    ChanLoaderException error = new ChanLoaderException(new VolleyError("Archive has no posts"));
+                    error.setCheckedBy(archive);
+                    notifyError(error);
+                } else {
+                    if (result.op != null) {
+                        result.op.archived(true);
+                    }
+                    onResponse(result);
+                }
+            });
+        });
     }
 
     private void cancelArchiveRequest() {

@@ -18,7 +18,6 @@
 package org.floens.chan.core.site.archive;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 
@@ -131,15 +130,6 @@ public class Archive {
             }
         }
         return false;
-    }
-
-    /**
-     * If a page with this title is Cloudflare's check rather than the archive's own page.
-     */
-    public static boolean isCheckPage(String title) {
-        return TextUtils.isEmpty(title)
-                || title.startsWith("Just a moment")
-                || title.startsWith("Attention Required");
     }
 
     public HttpUrl webThreadUrl(Loadable loadable) {

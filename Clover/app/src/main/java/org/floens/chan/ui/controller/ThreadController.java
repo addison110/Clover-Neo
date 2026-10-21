@@ -151,7 +151,7 @@ public abstract class ThreadController extends Controller implements
     @Override
     public void openArchiveCheck(Archive archive, Loadable loadable) {
         navigationController.pushController(new ArchiveCheckController(context, archive, loadable,
-                () -> threadLayout.getPresenter().requestData()));
+                (archiveFound, json) -> threadLayout.getPresenter().loadFromArchive(archiveFound, json)));
     }
 
     public void selectPostImage(PostImage postImage) {

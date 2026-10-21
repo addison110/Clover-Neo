@@ -44,6 +44,7 @@ import org.floens.chan.core.site.SiteActions;
 import org.floens.chan.core.site.http.DeleteRequest;
 import org.floens.chan.core.site.http.DeleteResponse;
 import org.floens.chan.core.site.http.HttpCall;
+import org.floens.chan.core.site.archive.Archive;
 import org.floens.chan.core.site.loader.ChanThreadLoader;
 import org.floens.chan.ui.adapter.PostAdapter;
 import org.floens.chan.ui.adapter.PostsFilter;
@@ -173,6 +174,16 @@ public class ThreadPresenter implements
     public void requestData() {
         threadPresenterCallback.showLoading();
         chanLoader.requestData();
+    }
+
+    /**
+     * Shows the thread from JSON the archive sent to the archive check page.
+     */
+    public void loadFromArchive(Archive archive, String json) {
+        if (chanLoader != null) {
+            threadPresenterCallback.showLoading();
+            chanLoader.loadArchiveJson(archive, json);
+        }
     }
 
     public void onForegroundChanged(boolean foreground) {

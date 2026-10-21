@@ -17,9 +17,12 @@
  */
 package org.floens.chan.core.site.archive;
 
+import android.content.Context;
+import android.text.TextUtils;
 import android.util.JsonReader;
 
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.AuthFailureError;
 import com.android.volley.Response;
 
 import org.floens.chan.core.model.Post;
@@ -29,7 +32,9 @@ import org.floens.chan.core.site.loader.ChanLoaderRequestParams;
 import org.floens.chan.core.site.loader.ChanLoaderResponse;
 import org.floens.chan.core.site.parser.ChanReaderRequest;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Loads a thread that's gone from 4chan from one of its archives.
@@ -39,8 +44,9 @@ public class ArchiveThreadRequest extends JsonReaderRequest<ChanLoaderResponse> 
 
     private final Archive archive;
     private final ChanReaderRequest readerRequest;
+    private final Map<String, String> headers = new HashMap<>();
 
-    public ArchiveThreadRequest(Archive archive, Loadable loadable, List<Post> cached,
+    public ArchiveThreadRequest(Context context, Archive archive, Loadable loadable, List<Post> cached,
                                 Response.Listener<ChanLoaderResponse> listener,
                                 Response.ErrorListener errorListener) {
         super(archive.apiThreadUrl(loadable).toString(), listener, errorListener);
@@ -51,8 +57,23 @@ public class ArchiveThreadRequest extends JsonReaderRequest<ChanLoaderResponse> 
         readerRequest = new ChanReaderRequest(new ChanLoaderRequestParams(
                 loadable, reader, cached, null, null));
 
+        headers.put("User-Agent", Archive.userAgent(context));
+        String cookies = archive.cookies();
+        if (!TextUtils.isEmpty(cookies)) {
+            headers.put("Cookie", cookies);
+        }
+
         setShouldCache(false);
         setRetryPolicy(new DefaultRetryPolicy(TIMEOUT_MS, 0, 1f));
+    }
+
+    public Archive getArchive() {
+        return archive;
+    }
+
+    @Override
+    public Map<String, String> getHeaders() throws AuthFailureError {
+        return headers;
     }
 
     @Override

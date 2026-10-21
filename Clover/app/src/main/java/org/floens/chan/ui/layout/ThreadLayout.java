@@ -106,6 +106,7 @@ public class ThreadLayout extends CoordinatorLayout implements
     private TextView errorText;
     private Button errorRetryButton;
     private Button errorArchiveButton;
+    private Archive checkedBy;
     private PostPopupHelper postPopupHelper;
     private Visible visible;
     private ProgressDialog deletingDialog;
@@ -180,11 +181,18 @@ public class ThreadLayout extends CoordinatorLayout implements
             presenter.requestData();
         } else if (v == errorArchiveButton) {
             Loadable loadable = presenter.getLoadable();
-            List<Archive> archives = loadable == null ? null : Archive.forLoadable(loadable);
-            if (archives != null && !archives.isEmpty()) {
-                // The archives can ask for a browser check that only works in the browser
-                AndroidUtils.openLinkInBrowser((Activity) getContext(),
-                        archives.get(0).webThreadUrl(loadable).toString());
+            if (loadable == null) {
+                return;
+            }
+            if (checkedBy != null) {
+                // Pass the archive's check, then load the thread from it
+                callback.openArchiveCheck(checkedBy, loadable);
+            } else {
+                List<Archive> archives = Archive.forLoadable(loadable);
+                if (!archives.isEmpty()) {
+                    AndroidUtils.openLinkInBrowser((Activity) getContext(),
+                            archives.get(0).webThreadUrl(loadable).toString());
+                }
             }
         } else if (v == replyButton) {
             threadListLayout.openReply(true);
@@ -268,6 +276,7 @@ public class ThreadLayout extends CoordinatorLayout implements
             Loadable loadable = presenter.getLoadable();
             boolean inArchive = error.isNotFound() && loadable != null
                     && !Archive.forLoadable(loadable).isEmpty();
+            checkedBy = error.getCheckedBy();
             errorArchiveButton.setVisibility(inArchive ? View.VISIBLE : View.GONE);
         }
     }
@@ -631,6 +640,8 @@ public class ThreadLayout extends CoordinatorLayout implements
         void presentRepliesController(Controller controller);
 
         void openReportController(Post post);
+
+        void openArchiveCheck(Archive archive, Loadable loadable);
 
         void hideSwipeRefreshLayout();
 

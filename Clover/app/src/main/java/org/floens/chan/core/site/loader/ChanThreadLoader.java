@@ -375,7 +375,7 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
         if (loaderException.isNotFound() && ChanSettings.loadFromArchives.get()) {
             List<Archive> archives = Archive.forLoadable(loadable);
             if (!archives.isEmpty()) {
-                loadFromArchive(archives, 0, loaderException);
+                loadFromArchive(archives, 0, loaderException, null);
                 return;
             }
         }
@@ -383,12 +383,13 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
         notifyError(loaderException);
     }
 
-    private void loadFromArchive(List<Archive> archives, int index, ChanLoaderException loaderException) {
+    private void loadFromArchive(List<Archive> archives, int index, ChanLoaderException loaderException,
+                                 Archive checkedBy) {
         int id = requestId;
         Archive archive = archives.get(index);
         List<Post> cached = thread == null ? new ArrayList<>() : thread.posts;
 
-        archiveRequest = new ArchiveThreadRequest(archive, loadable, cached, response -> {
+        archiveRequest = new ArchiveThreadRequest(AndroidUtils.getAppContext(), archive, loadable, cached, response -> {
             archiveRequest = null;
             if (id != requestId || request != null) {
                 // A newer request was started
@@ -406,9 +407,13 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
             }
 
             Logger.i(TAG, "Could not load " + loadable + " from " + archive.name, error);
+            // Remember the first archive that wants its Cloudflare check passed, so the user
+            // can pass it and try again
+            Archive checked = checkedBy == null && Archive.isCheck(error) ? archive : checkedBy;
             if (index + 1 < archives.size()) {
-                loadFromArchive(archives, index + 1, loaderException);
+                loadFromArchive(archives, index + 1, loaderException, checked);
             } else {
+                loaderException.setCheckedBy(checked);
                 notifyError(loaderException);
             }
         });

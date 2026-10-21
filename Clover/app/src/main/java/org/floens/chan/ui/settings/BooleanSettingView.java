@@ -71,6 +71,10 @@ public class BooleanSettingView extends SettingView implements View.OnClickListe
         switcher.setEnabled(enabled);
     }
 
+    public void setChecked(boolean checked) {
+        switcher.setChecked(checked);
+    }
+
     @Override
     public void onClick(View v) {
         switcher.toggle();

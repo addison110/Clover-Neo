@@ -508,6 +508,26 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="setting_clear_thread_hides">Clear all thread hides</string>
     <string name="setting_cleared_thread_hides">Cleared all thread hides</string>
 
+    <!-- Behavior privacy group -->
+    <string name="settings_group_privacy">Privacy</string>
+    <string name="setting_app_lock">Lock the app</string>
+    <string name="setting_app_lock_description">Ask for your fingerprint, face or screen lock when the app opens</string>
+    <string name="setting_app_lock_unavailable">Set up a screen lock in the Android settings first</string>
+    <string name="setting_app_lock_timeout">Lock again after</string>
+    <string name="setting_app_lock_timeout_immediately">Leaving the app</string>
+    <string name="setting_app_lock_timeout_seconds">%d seconds away</string>
+    <plurals name="setting_app_lock_timeout_minutes">
+        <item quantity="one">%d minute away</item>
+        <item quantity="other">%d minutes away</item>
+    </plurals>
+    <string name="setting_app_lock_timeout_hour">1 hour away</string>
+    <string name="setting_hide_from_recents">Hide from recent apps</string>
+    <string name="setting_hide_from_recents_description">Show a blank preview in the app switcher. On Android 12 and older this also blocks screenshots.</string>
+
+    <string name="app_lock_locked">%s is locked</string>
+    <string name="app_lock_unlock">Unlock</string>
+    <string name="app_lock_prompt_title">Unlock %s</string>
+
     <!-- Behavior reply group -->
     <string name="settings_group_reply">Reply</string>
     <string name="setting_post_pin">Bookmark thread on post</string>

@@ -34,6 +34,7 @@ import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import org.floens.chan.R;
 import org.floens.chan.controller.Controller;
@@ -55,6 +56,7 @@ import org.floens.chan.ui.controller.SplitNavigationController;
 import org.floens.chan.ui.controller.StyledToolbarNavigationController;
 import org.floens.chan.ui.controller.ThreadSlideController;
 import org.floens.chan.ui.controller.ViewThreadController;
+import org.floens.chan.ui.helper.AppLock;
 import org.floens.chan.ui.helper.VersionHandler;
 import org.floens.chan.ui.state.ChanState;
 import org.floens.chan.ui.theme.ThemeHelper;
@@ -86,6 +88,7 @@ public class StartActivity extends AppCompatActivity implements
     private RuntimePermissionsHelper runtimePermissionsHelper;
     private ActivityResultHelper.ActivityStarterHelper resultHelper;
     private VersionHandler versionHandler;
+    private AppLock appLock;
 
     private boolean intentMismatchWorkaroundActive = false;
 
@@ -133,6 +136,10 @@ public class StartActivity extends AppCompatActivity implements
 
         getOnBackPressedDispatcher().addCallback(this, backCallback);
 
+        // After the back callback, the lock's own callback has to come first.
+        appLock = new AppLock(this);
+        updateRecentsPreview();
+
         // Prevent overdraw
         // Do this after setContentView, or the decor creating will reset the background to a default non-null drawable
         getWindow().setBackgroundDrawable(null);
@@ -168,9 +175,22 @@ public class StartActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        appLock.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        appLock.onStop();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         resultHelper.onResume();
+        appLock.onResume();
     }
 
     @Override
@@ -362,6 +382,11 @@ public class StartActivity extends AppCompatActivity implements
 
     @Override
     public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+        if (appLock != null && appLock.isLocked()) {
+            // Don't let keys reach the screens below the lock, back still works.
+            return super.dispatchKeyEvent(event);
+        }
+
         if (event.getKeyCode() == KeyEvent.KEYCODE_MENU && event.getAction() == KeyEvent.ACTION_DOWN) {
             drawerController.onMenuClicked();
             return true;
@@ -431,6 +456,21 @@ public class StartActivity extends AppCompatActivity implements
 
     public ImagePickDelegate getImagePickDelegate() {
         return imagePickDelegate;
+    }
+
+    /**
+     * Hides the app's preview in the app switcher when that is turned on in the settings.
+     */
+    public void updateRecentsPreview() {
+        boolean hide = ChanSettings.hideFromRecents.get();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Only drops the preview, screenshots keep working.
+            setRecentsScreenshotEnabled(!hide);
+        } else if (hide) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        }
     }
 
     public VersionHandler getVersionHandler() {

@@ -125,6 +125,9 @@ public class ChanSettings {
     public static final BooleanSetting revealTextSpoilers;
     public static final BooleanSetting repliesButtonsBottom;
     public static final BooleanSetting confirmExit;
+    public static final BooleanSetting appLock;
+    public static final IntegerSetting appLockTimeout;
+    public static final BooleanSetting hideFromRecents;
     public static final BooleanSetting tapNoReply;
     public static final BooleanSetting volumeKeysScrolling;
     public static final BooleanSetting postFullDate;
@@ -207,6 +210,10 @@ public class ChanSettings {
         revealTextSpoilers = new BooleanSetting(p, "preference_reveal_text_spoilers", false);
         repliesButtonsBottom = new BooleanSetting(p, "preference_buttons_bottom", false);
         confirmExit = new BooleanSetting(p, "preference_confirm_exit", false);
+        appLock = new BooleanSetting(p, "preference_app_lock", false);
+        // In seconds
+        appLockTimeout = new IntegerSetting(p, "preference_app_lock_timeout", 60);
+        hideFromRecents = new BooleanSetting(p, "preference_hide_from_recents", false);
         tapNoReply = new BooleanSetting(p, "preference_tap_no_reply", false);
         volumeKeysScrolling = new BooleanSetting(p, "preference_volume_key_scrolling", false);
         postFullDate = new BooleanSetting(p, "preference_post_full_date", false);

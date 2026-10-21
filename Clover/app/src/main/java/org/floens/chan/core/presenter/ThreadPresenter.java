@@ -17,6 +17,7 @@
  */
 package org.floens.chan.core.presenter;
 
+import android.content.Context;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -97,6 +98,7 @@ public class ThreadPresenter implements
     private PostsFilter.Order order = PostsFilter.Order.BUMP;
     private boolean historyAdded = false;
     private boolean savedCopyShown = false;
+    private boolean archiveShown = false;
 
     private SavedThreadManager savedThreadManager;
 
@@ -149,6 +151,7 @@ public class ThreadPresenter implements
             loadable = null;
             historyAdded = false;
             savedCopyShown = false;
+            archiveShown = false;
 
             threadPresenterCallback.showNewPostsNotification(false, -1);
             threadPresenterCallback.showLoading();
@@ -323,6 +326,13 @@ public class ThreadPresenter implements
             Toast.makeText(AndroidUtils.getAppContext(), result.archived ?
                     R.string.saved_thread_showing_gone : R.string.saved_thread_showing_offline,
                     Toast.LENGTH_LONG).show();
+        }
+
+        if (result.archive != null && !archiveShown) {
+            archiveShown = true;
+            Context context = AndroidUtils.getAppContext();
+            Toast.makeText(context, context.getString(R.string.thread_showing_archive,
+                    result.archive.name), Toast.LENGTH_LONG).show();
         }
     }
 

@@ -155,6 +155,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="thread_refresh_now">Loading</string>
     <string name="thread_refresh_countdown">Loading in %1$ds</string>
     <string name="thread_load_failed_retry">Retry</string>
+    <string name="thread_open_in_archive">Open in archive</string>
+    <string name="thread_showing_archive">The thread is gone from the site, showing the copy from %1$s</string>
     <string name="thread_archived">Archived</string>
     <string name="thread_closed">Closed</string>
     <plurals name="thread_new_posts">
@@ -503,6 +505,8 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="setting_force_english_locale">Always use English for the language of the app</string>
     <string name="setting_force_english_locale_toggle_notice">Language will be applied on the next app start.</string>
     <string name="setting_auto_refresh_thread">Auto refresh threads</string>
+    <string name="setting_load_from_archives">Load deleted threads from archives</string>
+    <string name="setting_load_from_archives_description">When a 4chan thread is gone, show the copy kept by an archive such as Desuarchive or 4plebs</string>
     <string name="setting_confirm_exit">Confirm before exit</string>
     <string name="setting_controller_swipeable">Allow screens to be swiped away</string>
     <string name="setting_clear_thread_hides">Clear all thread hides</string>

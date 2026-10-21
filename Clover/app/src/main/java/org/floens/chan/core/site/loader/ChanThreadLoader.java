@@ -28,6 +28,9 @@ import org.floens.chan.core.model.ChanThread;
 import org.floens.chan.core.model.Post;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.offline.SavedThreadManager;
+import org.floens.chan.core.settings.ChanSettings;
+import org.floens.chan.core.site.archive.Archive;
+import org.floens.chan.core.site.archive.ArchiveThreadRequest;
 import org.floens.chan.core.site.parser.ChanReader;
 import org.floens.chan.core.site.parser.ChanReaderRequest;
 import org.floens.chan.ui.helper.PostHelper;
@@ -68,6 +71,7 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
     private ChanThread thread;
 
     private ChanLoaderRequest request;
+    private ArchiveThreadRequest archiveRequest;
     // Changes with every request, to drop a saved copy that arrives after a newer request
     private int requestId;
 
@@ -112,6 +116,7 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
                 request.getVolleyRequest().cancel();
                 request = null;
             }
+            cancelArchiveRequest();
             return true;
         } else {
             return false;
@@ -132,6 +137,7 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
             request.getVolleyRequest().cancel();
             // request = null;
         }
+        cancelArchiveRequest();
 
         if (loadable.isCatalogMode()) {
             loadable.no = 0;
@@ -272,8 +278,9 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
 
         processResponse(response);
         thread.savedCopy = response.savedCopy;
+        thread.archive = response.archive;
 
-        if (loadable.isThreadMode() && !response.savedCopy) {
+        if (loadable.isThreadMode() && !response.savedCopy && response.archive == null) {
             injector().instance(SavedThreadManager.class).onThreadLoaded(loadable, response);
         }
 
@@ -364,7 +371,56 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
             }
         }
 
+        // Look for threads that are gone from the site in its archives
+        if (loaderException.isNotFound() && ChanSettings.loadFromArchives.get()) {
+            List<Archive> archives = Archive.forLoadable(loadable);
+            if (!archives.isEmpty()) {
+                loadFromArchive(archives, 0, loaderException);
+                return;
+            }
+        }
+
         notifyError(loaderException);
+    }
+
+    private void loadFromArchive(List<Archive> archives, int index, ChanLoaderException loaderException) {
+        int id = requestId;
+        Archive archive = archives.get(index);
+        List<Post> cached = thread == null ? new ArrayList<>() : thread.posts;
+
+        archiveRequest = new ArchiveThreadRequest(archive, loadable, cached, response -> {
+            archiveRequest = null;
+            if (id != requestId || request != null) {
+                // A newer request was started
+                return;
+            }
+
+            if (response.op != null) {
+                response.op.archived(true);
+            }
+            onResponse(response);
+        }, error -> {
+            archiveRequest = null;
+            if (id != requestId || request != null) {
+                return;
+            }
+
+            Logger.i(TAG, "Could not load " + loadable + " from " + archive.name, error);
+            if (index + 1 < archives.size()) {
+                loadFromArchive(archives, index + 1, loaderException);
+            } else {
+                notifyError(loaderException);
+            }
+        });
+
+        volleyRequestQueue.add(archiveRequest);
+    }
+
+    private void cancelArchiveRequest() {
+        if (archiveRequest != null) {
+            archiveRequest.cancel();
+            archiveRequest = null;
+        }
     }
 
     private void notifyError(ChanLoaderException loaderException) {

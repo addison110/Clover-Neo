@@ -95,6 +95,7 @@ public class ChanSettings {
     public static final BooleanSetting openLinkConfirmation;
     public static final BooleanSetting openLinkBrowser;
     public static final BooleanSetting autoRefreshThread;
+    public static final BooleanSetting loadFromArchives;
     //    public static final BooleanSetting imageAutoLoad;
     public static final OptionsSetting<MediaAutoLoadMode> imageAutoLoadNetwork;
     public static final OptionsSetting<MediaAutoLoadMode> videoAutoLoadNetwork;
@@ -177,6 +178,7 @@ public class ChanSettings {
         openLinkConfirmation = new BooleanSetting(p, "preference_open_link_confirmation", false);
         openLinkBrowser = new BooleanSetting(p, "preference_open_link_browser", false);
         autoRefreshThread = new BooleanSetting(p, "preference_auto_refresh_thread", true);
+        loadFromArchives = new BooleanSetting(p, "preference_load_from_archives", true);
 //        imageAutoLoad = new BooleanSetting(p, "preference_image_auto_load", true);
         imageAutoLoadNetwork = new OptionsSetting<>(p, "preference_image_auto_load_network", MediaAutoLoadMode.class, MediaAutoLoadMode.WIFI);
         videoAutoLoadNetwork = new OptionsSetting<>(p, "preference_video_auto_load_network", MediaAutoLoadMode.class, MediaAutoLoadMode.WIFI);

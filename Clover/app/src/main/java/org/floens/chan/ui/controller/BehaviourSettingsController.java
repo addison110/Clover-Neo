@@ -87,6 +87,11 @@ public class BehaviourSettingsController extends SettingsController {
                     ChanSettings.autoRefreshThread,
                     R.string.setting_auto_refresh_thread, 0));
 
+            general.add(new BooleanSettingView(this,
+                    ChanSettings.loadFromArchives,
+                    R.string.setting_load_from_archives,
+                    R.string.setting_load_from_archives_description));
+
             general.add(new BooleanSettingView(this, ChanSettings.confirmExit,
                     R.string.setting_confirm_exit, 0));
 

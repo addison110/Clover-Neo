@@ -615,6 +615,22 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
         seekFeedback.animate().alpha(0f).setStartDelay(500).setDuration(300).start();
     }
 
+    // Keep the controls up while the video is paused, hide them again after the timeout once it
+    // plays. PlayerView only does this itself when the controls show as a video starts.
+    @Override
+    @OptIn(markerClass = UnstableApi.class)
+    public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
+        if (exoVideoView == null) {
+            return;
+        }
+        if (playWhenReady) {
+            exoVideoView.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
+        } else {
+            exoVideoView.setControllerShowTimeoutMs(0);
+            exoVideoView.showController();
+        }
+    }
+
     @Override
     public void onTracksChanged(Tracks tracks) {
         if (tracks.containsType(C.TRACK_TYPE_AUDIO)) {

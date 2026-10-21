@@ -17,7 +17,6 @@
  */
 package org.floens.chan.core.site.sites.chan4;
 
-import android.text.TextUtils;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
 
@@ -39,7 +38,6 @@ import org.floens.chan.core.site.SiteEndpoints;
 import org.floens.chan.core.site.SiteIcon;
 import org.floens.chan.core.site.SiteRequestModifier;
 import org.floens.chan.core.site.SiteUrlHandler;
-import org.floens.chan.core.site.common.CommonReplyHttpCall;
 import org.floens.chan.core.site.common.DefaultPostParser;
 import org.floens.chan.core.site.common.FutabaChanReader;
 import org.floens.chan.core.site.http.DeleteRequest;
@@ -304,22 +302,8 @@ public class Chan4 extends SiteBase {
     private SiteRequestModifier siteRequestModifier = new SiteRequestModifier() {
         @Override
         public void modifyHttpCall(HttpCall httpCall, Request.Builder requestBuilder) {
-            List<String> cookies = new ArrayList<>();
             if (actions.isLoggedIn()) {
-                cookies.add("pass_id=" + passToken.get());
-            }
-
-            if (httpCall instanceof Chan4ReplyCall) {
-                // 4chan only accepts the captcha answer together with the cookies its captcha
-                // set in the captcha WebView.
-                String webViewCookies = CookieManager.getInstance().getCookie("https://sys.4chan.org/");
-                if (!TextUtils.isEmpty(webViewCookies)) {
-                    cookies.add(webViewCookies);
-                }
-            }
-
-            if (!cookies.isEmpty()) {
-                requestBuilder.header("Cookie", TextUtils.join("; ", cookies));
+                requestBuilder.addHeader("Cookie", "pass_id=" + passToken.get());
             }
         }
 
@@ -374,17 +358,16 @@ public class Chan4 extends SiteBase {
 
         @Override
         public void post(Reply reply, final PostListener postListener) {
-            httpCallManager.makeHttpCall(new Chan4ReplyCall(Chan4.this, reply), new HttpCall.HttpCallback<CommonReplyHttpCall>() {
-                @Override
-                public void onHttpSuccess(CommonReplyHttpCall httpPost) {
-                    postListener.onPostComplete(httpPost, httpPost.replyResponse);
-                }
-
-                @Override
-                public void onHttpFail(CommonReplyHttpCall httpPost, Exception e) {
-                    postListener.onPostError(httpPost, e);
-                }
-            });
+            // Sent from a WebView like 4chan's website does, see Chan4WebViewReplyCall
+            if (isLoggedIn()) {
+                CookieManager cookieManager = CookieManager.getInstance();
+                cookieManager.setCookie("https://sys.4chan.org/", "pass_enabled=1");
+                cookieManager.setCookie("https://sys.4chan.org/", "pass_id=" + passToken.get());
+            }
+            new Chan4WebViewReplyCall(new Chan4ReplyCall(Chan4.this, reply),
+                    URL_HANDLER.desktopUrl(reply.loadable, null),
+                    endpoints.reply(reply.loadable).toString(),
+                    postListener).start();
         }
 
         @Override

@@ -23,6 +23,9 @@ import org.floens.chan.core.site.Site;
 import org.floens.chan.core.site.common.CommonReplyHttpCall;
 import org.floens.chan.core.site.http.Reply;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -34,25 +37,8 @@ public class Chan4ReplyCall extends CommonReplyHttpCall {
 
     @Override
     public void addParameters(MultipartBody.Builder formBuilder) {
-        formBuilder.addFormDataPart("mode", "regist");
-        formBuilder.addFormDataPart("pwd", replyResponse.password);
-
-        if (reply.loadable.isThreadMode()) {
-            formBuilder.addFormDataPart("resto", String.valueOf(reply.loadable.no));
-        }
-
-        formBuilder.addFormDataPart("name", reply.name);
-        formBuilder.addFormDataPart("email", reply.options);
-
-        if (!reply.loadable.isThreadMode() && !TextUtils.isEmpty(reply.subject)) {
-            formBuilder.addFormDataPart("sub", reply.subject);
-        }
-
-        formBuilder.addFormDataPart("com", reply.comment);
-
-        if (reply.captchaChallenge != null && reply.captchaResponse != null) {
-            formBuilder.addFormDataPart("t-challenge", reply.captchaChallenge);
-            formBuilder.addFormDataPart("t-response", reply.captchaResponse);
+        for (Map.Entry<String, String> field : textParameters().entrySet()) {
+            formBuilder.addFormDataPart(field.getKey(), field.getValue());
         }
 
         if (reply.file != null) {
@@ -60,9 +46,38 @@ public class Chan4ReplyCall extends CommonReplyHttpCall {
                     MediaType.parse("application/octet-stream"), reply.file
             ));
         }
+    }
+
+    /**
+     * The form fields of the reply, without the file.
+     */
+    public Map<String, String> textParameters() {
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("mode", "regist");
+        fields.put("pwd", replyResponse.password);
+
+        if (reply.loadable.isThreadMode()) {
+            fields.put("resto", String.valueOf(reply.loadable.no));
+        }
+
+        fields.put("name", reply.name);
+        fields.put("email", reply.options);
+
+        if (!reply.loadable.isThreadMode() && !TextUtils.isEmpty(reply.subject)) {
+            fields.put("sub", reply.subject);
+        }
+
+        fields.put("com", reply.comment);
+
+        if (reply.captchaChallenge != null && reply.captchaResponse != null) {
+            fields.put("t-challenge", reply.captchaChallenge);
+            fields.put("t-response", reply.captchaResponse);
+        }
 
         if (reply.spoilerImage) {
-            formBuilder.addFormDataPart("spoiler", "on");
+            fields.put("spoiler", "on");
         }
+
+        return fields;
     }
 }

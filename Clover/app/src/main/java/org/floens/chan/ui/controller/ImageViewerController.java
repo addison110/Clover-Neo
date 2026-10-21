@@ -337,7 +337,12 @@ public class ImageViewerController extends Controller implements ImageViewerPres
                 }
                 for (ImageSearch imageSearch : ImageSearch.engines) {
                     if (((Integer) item.getId()) == imageSearch.getId()) {
-                        AndroidUtils.openLinkInBrowser((Activity) context, imageSearch.getUrl(searchImageUrl.toString()));
+                        String searchUrl = imageSearch.getUrl(searchImageUrl.toString());
+                        if (ChanSettings.imageSearchPrivate.get()) {
+                            AndroidUtils.openLinkInPrivateBrowser((Activity) context, searchUrl);
+                        } else {
+                            AndroidUtils.openLinkInBrowser((Activity) context, searchUrl);
+                        }
                         break;
                     }
                 }

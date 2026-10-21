@@ -94,6 +94,7 @@ public class ChanSettings {
     public static final BooleanSetting fontCondensed;
     public static final BooleanSetting openLinkConfirmation;
     public static final BooleanSetting openLinkBrowser;
+    public static final BooleanSetting imageSearchPrivate;
     public static final BooleanSetting autoRefreshThread;
     //    public static final BooleanSetting imageAutoLoad;
     public static final OptionsSetting<MediaAutoLoadMode> imageAutoLoadNetwork;
@@ -176,6 +177,7 @@ public class ChanSettings {
         fontCondensed = new BooleanSetting(p, "preference_font_condensed", false);
         openLinkConfirmation = new BooleanSetting(p, "preference_open_link_confirmation", false);
         openLinkBrowser = new BooleanSetting(p, "preference_open_link_browser", false);
+        imageSearchPrivate = new BooleanSetting(p, "preference_image_search_private", false);
         autoRefreshThread = new BooleanSetting(p, "preference_auto_refresh_thread", true);
 //        imageAutoLoad = new BooleanSetting(p, "preference_image_auto_load", true);
         imageAutoLoadNetwork = new OptionsSetting<>(p, "preference_image_auto_load_network", MediaAutoLoadMode.class, MediaAutoLoadMode.WIFI);

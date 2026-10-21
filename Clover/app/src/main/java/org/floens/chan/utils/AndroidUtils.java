@@ -43,6 +43,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 
+import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -190,6 +191,30 @@ public class AndroidUtils {
             }
         } else {
             openLink(link);
+        }
+    }
+
+    /**
+     * Opens the link in an ephemeral (incognito) custom tab, which keeps no history, cookies or
+     * cache after it's closed. If the browser doesn't support that, nothing is opened and the user
+     * is told why, so the link never ends up in a normal tab by accident.
+     */
+    public static void openLinkInPrivateBrowser(Activity activity, String link) {
+        String browserPackage = CustomTabsClient.getPackageName(activity, null);
+        if (browserPackage == null || !CustomTabsClient.isEphemeralBrowsingSupported(activity, browserPackage)) {
+            Toast.makeText(activity, R.string.open_link_private_unsupported, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        CustomTabsIntent tabsIntent = new CustomTabsIntent.Builder()
+                .setToolbarColor(theme().primaryColor.color)
+                .setEphemeralBrowsingEnabled(true)
+                .build();
+        tabsIntent.intent.setPackage(browserPackage);
+        try {
+            tabsIntent.launchUrl(activity, Uri.parse(link));
+        } catch (ActivityNotFoundException e) {
+            openIntentFailed();
         }
     }
 

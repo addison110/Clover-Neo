@@ -95,6 +95,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="action_transparency_toggle">Toggle opacity</string>
     <string name="action_search">Search</string>
     <string name="action_search_image">Image search</string>
+    <string name="image_search_unavailable">This file can\'t be searched</string>
     <string name="action_switch_catalog">Catalog mode</string>
     <string name="action_switch_board">Board mode</string>
     <string name="action_scroll_to_top">Top</string>

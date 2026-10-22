@@ -18,6 +18,7 @@
 package org.floens.chan.ui.controller;
 
 import android.content.Context;
+import android.view.View;
 
 import org.floens.chan.R;
 import org.floens.chan.core.settings.ChanSettings;
@@ -34,7 +35,10 @@ import static org.floens.chan.utils.AndroidUtils.getString;
 
 public class VideoSettingsController extends SettingsController {
     private SettingView builtInPlayer;
-    private final List<SettingView> controlsSettings = new ArrayList<>();
+    private SettingView controlsPosition;
+    private SettingView seekButtons;
+    private SettingView doubleTapSeek;
+    private SettingView seekIncrement;
 
     public VideoSettingsController(Context context) {
         super(context);
@@ -52,7 +56,8 @@ public class VideoSettingsController extends SettingsController {
 
         buildPreferences();
 
-        updateControlsVisibility(false);
+        updateControlsVisibility();
+        updateSeekIncrementEnabled();
     }
 
     @Override
@@ -60,16 +65,22 @@ public class VideoSettingsController extends SettingsController {
         super.onPreferenceChange(item);
 
         if (item == builtInPlayer) {
-            updateControlsVisibility(true);
+            updateControlsVisibility();
+        } else if (item == seekButtons || item == doubleTapSeek) {
+            updateSeekIncrementEnabled();
         }
     }
 
-    // The controls only belong to the built-in player
-    private void updateControlsVisibility(boolean animated) {
-        boolean visible = ChanSettings.videoUseExoplayer.get();
-        for (SettingView setting : controlsSettings) {
-            setSettingViewVisibility(setting, visible, animated);
-        }
+    // The controls only belong to the built-in player, hide their whole group, header included
+    private void updateControlsVisibility() {
+        View group = (View) controlsPosition.view.getParent();
+        group.setVisibility(ChanSettings.videoUseExoplayer.get() ? View.VISIBLE : View.GONE);
+    }
+
+    // Only the skip buttons and double-tapping skip
+    private void updateSeekIncrementEnabled() {
+        seekIncrement.setEnabled(
+                ChanSettings.videoSeekButtons.get() || ChanSettings.videoDoubleTapSeek.get());
     }
 
     private void populatePreferences() {
@@ -109,37 +120,37 @@ public class VideoSettingsController extends SettingsController {
                     getString(R.string.setting_video_controls_position_bottom), "bottom"));
             positions.add(new ListSettingView.Item<>(
                     getString(R.string.setting_video_controls_position_center), "center"));
-            controlsSettings.add(controls.add(new ListSettingView<>(this,
+            controlsPosition = controls.add(new ListSettingView<>(this,
                     ChanSettings.videoControlsPosition,
-                    R.string.setting_video_controls_position, positions)));
+                    R.string.setting_video_controls_position, positions));
 
-            controlsSettings.add(controls.add(new BooleanSettingView(this,
+            controls.add(new BooleanSettingView(this,
                     ChanSettings.videoControlsAutoShow,
                     R.string.setting_video_controls_auto_show,
-                    R.string.setting_video_controls_auto_show_description)));
+                    R.string.setting_video_controls_auto_show_description));
 
             List<ListSettingView.Item> timeouts = secondsItems(2, 3, 5, 10);
             // Media3 keeps the controls visible without a timeout
             timeouts.add(new ListSettingView.Item<>(
                     getString(R.string.setting_video_controls_timeout_never), 0));
-            controlsSettings.add(controls.add(new ListSettingView<>(this,
+            controls.add(new ListSettingView<>(this,
                     ChanSettings.videoControlsTimeout,
-                    R.string.setting_video_controls_timeout, timeouts)));
+                    R.string.setting_video_controls_timeout, timeouts));
 
-            controlsSettings.add(controls.add(new BooleanSettingView(this,
+            seekButtons = controls.add(new BooleanSettingView(this,
                     ChanSettings.videoSeekButtons,
                     R.string.setting_video_seek_buttons,
-                    R.string.setting_video_seek_buttons_description)));
+                    R.string.setting_video_seek_buttons_description));
 
-            controlsSettings.add(controls.add(new BooleanSettingView(this,
+            doubleTapSeek = controls.add(new BooleanSettingView(this,
                     ChanSettings.videoDoubleTapSeek,
                     R.string.setting_video_double_tap_seek,
-                    R.string.setting_video_double_tap_seek_description)));
+                    R.string.setting_video_double_tap_seek_description));
 
-            controlsSettings.add(controls.add(new ListSettingView<>(this,
+            seekIncrement = controls.add(new ListSettingView<>(this,
                     ChanSettings.videoSeekIncrement,
                     R.string.setting_video_seek_increment,
-                    secondsItems(5, 10, 15, 30))));
+                    secondsItems(5, 10, 15, 30)));
 
             groups.add(controls);
         }

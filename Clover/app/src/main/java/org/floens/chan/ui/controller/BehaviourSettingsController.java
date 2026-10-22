@@ -24,22 +24,32 @@ import android.widget.Toast;
 import org.floens.chan.R;
 import org.floens.chan.core.database.DatabaseManager;
 import org.floens.chan.core.settings.ChanSettings;
+import org.floens.chan.ui.activity.StartActivity;
+import org.floens.chan.ui.helper.AppLock;
 import org.floens.chan.ui.helper.RefreshUIMessage;
 import org.floens.chan.ui.settings.BooleanSettingView;
 import org.floens.chan.ui.settings.IntegerSettingView;
 import org.floens.chan.ui.settings.LinkSettingView;
+import org.floens.chan.ui.settings.ListSettingView;
 import org.floens.chan.ui.settings.SettingView;
 import org.floens.chan.ui.settings.SettingsController;
 import org.floens.chan.ui.settings.SettingsGroup;
 import org.floens.chan.ui.settings.StringSettingView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import de.greenrobot.event.EventBus;
 
 import static org.floens.chan.Chan.injector;
+import static org.floens.chan.utils.AndroidUtils.getString;
 
 public class BehaviourSettingsController extends SettingsController {
     private SettingView forceEnglishSetting;
     private SettingView useNewCaptchaWindow;
+    private BooleanSettingView appLockSetting;
+    private SettingView appLockTimeoutSetting;
+    private SettingView hideFromRecentsSetting;
 
     public BehaviourSettingsController(Context context) {
         super(context);
@@ -60,12 +70,22 @@ public class BehaviourSettingsController extends SettingsController {
         if (item == forceEnglishSetting) {
             Toast.makeText(context, R.string.setting_force_english_locale_toggle_notice,
                     Toast.LENGTH_LONG).show();
+        } else if (item == appLockSetting) {
+            if (ChanSettings.appLock.get() && !AppLock.isAvailable(context)) {
+                Toast.makeText(context, R.string.setting_app_lock_unavailable,
+                        Toast.LENGTH_LONG).show();
+                appLockSetting.setChecked(false);
+            }
+            appLockTimeoutSetting.setEnabled(ChanSettings.appLock.get());
+        } else if (item == hideFromRecentsSetting) {
+            ((StartActivity) context).updateRecentsPreview();
         }
     }
 
     private void rebuildPreferences() {
         populatePreferences();
         buildPreferences();
+        appLockTimeoutSetting.setEnabled(ChanSettings.appLock.get());
     }
 
     private void populatePreferences() {
@@ -102,6 +122,24 @@ public class BehaviourSettingsController extends SettingsController {
             setupClearThreadHidesSetting(general);
 
             groups.add(general);
+        }
+
+        // Privacy group
+        {
+            SettingsGroup privacy = new SettingsGroup(R.string.settings_group_privacy);
+
+            appLockSetting = (BooleanSettingView) privacy.add(new BooleanSettingView(this,
+                    ChanSettings.appLock,
+                    R.string.setting_app_lock, R.string.setting_app_lock_description));
+
+            setupAppLockTimeoutSetting(privacy);
+
+            hideFromRecentsSetting = privacy.add(new BooleanSettingView(this,
+                    ChanSettings.hideFromRecents,
+                    R.string.setting_hide_from_recents,
+                    R.string.setting_hide_from_recents_description));
+
+            groups.add(privacy);
         }
 
         // Reply group
@@ -195,6 +233,24 @@ public class BehaviourSettingsController extends SettingsController {
 
             groups.add(proxy);
         }
+    }
+
+    private void setupAppLockTimeoutSetting(SettingsGroup privacy) {
+        List<ListSettingView.Item> timeouts = new ArrayList<>();
+        timeouts.add(new ListSettingView.Item<>(
+                getString(R.string.setting_app_lock_timeout_immediately), 0));
+        timeouts.add(new ListSettingView.Item<>(
+                context.getString(R.string.setting_app_lock_timeout_seconds, 30), 30));
+        for (int minutes : new int[]{1, 5, 15}) {
+            timeouts.add(new ListSettingView.Item<>(context.getResources().getQuantityString(
+                    R.plurals.setting_app_lock_timeout_minutes, minutes, minutes), minutes * 60));
+        }
+        timeouts.add(new ListSettingView.Item<>(
+                getString(R.string.setting_app_lock_timeout_hour), 60 * 60));
+
+        appLockTimeoutSetting = privacy.add(new ListSettingView<>(this,
+                ChanSettings.appLockTimeout,
+                R.string.setting_app_lock_timeout, timeouts));
     }
 
     private void setupClearThreadHidesSetting(SettingsGroup post) {

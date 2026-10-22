@@ -17,6 +17,8 @@
  */
 package org.floens.chan.core.exception;
 
+import androidx.annotation.Nullable;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkError;
 import com.android.volley.ParseError;
@@ -25,11 +27,13 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 
 import org.floens.chan.R;
+import org.floens.chan.core.site.archive.Archive;
 
 import javax.net.ssl.SSLException;
 
 public class ChanLoaderException extends Exception {
     private VolleyError volleyError;
+    private Archive checkedBy;
 
     public ChanLoaderException(VolleyError volleyError) {
         this.volleyError = volleyError;
@@ -48,6 +52,18 @@ public class ChanLoaderException extends Exception {
 
     public ChanLoaderException(Throwable cause) {
         super(cause);
+    }
+
+    /**
+     * The archive that may have the thread, but wants its Cloudflare check passed first.
+     */
+    @Nullable
+    public Archive getCheckedBy() {
+        return checkedBy;
+    }
+
+    public void setCheckedBy(@Nullable Archive checkedBy) {
+        this.checkedBy = checkedBy;
     }
 
     public boolean isNotFound() {

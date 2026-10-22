@@ -18,6 +18,7 @@
 package org.floens.chan.core.site.loader;
 
 import org.floens.chan.core.model.Post;
+import org.floens.chan.core.site.archive.Archive;
 
 import java.util.List;
 
@@ -36,6 +37,11 @@ public class ChanLoaderResponse {
      * If the posts come from the copy saved for offline viewing instead of the site.
      */
     public boolean savedCopy;
+
+    /**
+     * The archive the posts come from, when the thread is gone from the site.
+     */
+    public Archive archive;
 
     public ChanLoaderResponse(Post.Builder op, List<Post> posts) {
         this.op = op;

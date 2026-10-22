@@ -18,6 +18,7 @@
 package org.floens.chan.core.site.loader;
 
 import android.text.TextUtils;
+import android.util.JsonReader;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -28,6 +29,9 @@ import org.floens.chan.core.model.ChanThread;
 import org.floens.chan.core.model.Post;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.offline.SavedThreadManager;
+import org.floens.chan.core.settings.ChanSettings;
+import org.floens.chan.core.site.archive.Archive;
+import org.floens.chan.core.site.archive.ArchiveThreadRequest;
 import org.floens.chan.core.site.parser.ChanReader;
 import org.floens.chan.core.site.parser.ChanReaderRequest;
 import org.floens.chan.ui.helper.PostHelper;
@@ -35,6 +39,7 @@ import org.floens.chan.utils.AndroidUtils;
 import org.floens.chan.utils.Logger;
 import org.floens.chan.utils.Time;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -68,6 +73,7 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
     private ChanThread thread;
 
     private ChanLoaderRequest request;
+    private ArchiveThreadRequest archiveRequest;
     // Changes with every request, to drop a saved copy that arrives after a newer request
     private int requestId;
 
@@ -112,6 +118,7 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
                 request.getVolleyRequest().cancel();
                 request = null;
             }
+            cancelArchiveRequest();
             return true;
         } else {
             return false;
@@ -132,6 +139,7 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
             request.getVolleyRequest().cancel();
             // request = null;
         }
+        cancelArchiveRequest();
 
         if (loadable.isCatalogMode()) {
             loadable.no = 0;
@@ -272,8 +280,9 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
 
         processResponse(response);
         thread.savedCopy = response.savedCopy;
+        thread.archive = response.archive;
 
-        if (loadable.isThreadMode() && !response.savedCopy) {
+        if (loadable.isThreadMode() && !response.savedCopy && response.archive == null) {
             injector().instance(SavedThreadManager.class).onThreadLoaded(loadable, response);
         }
 
@@ -364,7 +373,103 @@ public class ChanThreadLoader implements Response.ErrorListener, Response.Listen
             }
         }
 
+        // Look for threads that are gone from the site in its archives
+        if (loaderException.isNotFound() && ChanSettings.loadFromArchives.get()) {
+            List<Archive> archives = Archive.forLoadable(loadable);
+            if (!archives.isEmpty()) {
+                loadFromArchive(archives, 0, loaderException, null);
+                return;
+            }
+        }
+
         notifyError(loaderException);
+    }
+
+    private void loadFromArchive(List<Archive> archives, int index, ChanLoaderException loaderException,
+                                 Archive checkedBy) {
+        int id = requestId;
+        Archive archive = archives.get(index);
+        List<Post> cached = thread == null ? new ArrayList<>() : thread.posts;
+
+        archiveRequest = new ArchiveThreadRequest(AndroidUtils.getAppContext(), archive, loadable, cached, response -> {
+            archiveRequest = null;
+            if (id != requestId || request != null) {
+                // A newer request was started
+                return;
+            }
+
+            if (response.op != null) {
+                response.op.archived(true);
+            }
+            onResponse(response);
+        }, error -> {
+            archiveRequest = null;
+            if (id != requestId || request != null) {
+                return;
+            }
+
+            Logger.i(TAG, "Could not load " + loadable + " from " + archive.name, error);
+            // Remember the first archive that wants its Cloudflare check passed, so the user
+            // can pass it and try again
+            Archive checked = checkedBy == null && Archive.isCheck(error) ? archive : checkedBy;
+            if (index + 1 < archives.size()) {
+                loadFromArchive(archives, index + 1, loaderException, checked);
+            } else {
+                loaderException.setCheckedBy(checked);
+                notifyError(loaderException);
+            }
+        });
+
+        volleyRequestQueue.add(archiveRequest);
+    }
+
+    /**
+     * Shows the thread from JSON that the archive already sent, through the archive check page.
+     */
+    public void loadArchiveJson(Archive archive, String json) {
+        clearTimer();
+        if (request != null) {
+            request.getVolleyRequest().cancel();
+            request = null;
+        }
+        cancelArchiveRequest();
+
+        int id = ++requestId;
+        List<Post> cached = thread == null ? new ArrayList<>() : thread.posts;
+        ArchiveThreadRequest reader = new ArchiveThreadRequest(AndroidUtils.getAppContext(), archive,
+                loadable, cached, null, null);
+        executor.execute(() -> {
+            ChanLoaderResponse response = null;
+            try (JsonReader jsonReader = new JsonReader(new StringReader(json))) {
+                response = reader.readJson(jsonReader);
+            } catch (Exception e) {
+                Logger.e(TAG, "Could not read " + loadable + " from " + archive.name, e);
+            }
+
+            ChanLoaderResponse result = response;
+            AndroidUtils.runOnUiThread(() -> {
+                if (id != requestId || request != null) {
+                    return;
+                }
+                if (result == null || result.posts.isEmpty()) {
+                    ChanLoaderException error = new ChanLoaderException(new VolleyError("Archive has no posts"));
+                    error.setCheckedBy(archive);
+                    notifyError(error);
+                } else {
+                    if (result.op != null) {
+                        result.op.archived(true);
+                    }
+                    onResponse(result);
+                }
+            });
+        });
+    }
+
+    private void cancelArchiveRequest() {
+        if (archiveRequest != null) {
+            archiveRequest.cancel();
+            archiveRequest = null;
+        }
     }
 
     private void notifyError(ChanLoaderException loaderException) {

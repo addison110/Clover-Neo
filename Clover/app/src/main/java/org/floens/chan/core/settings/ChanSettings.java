@@ -94,7 +94,9 @@ public class ChanSettings {
     public static final BooleanSetting fontCondensed;
     public static final BooleanSetting openLinkConfirmation;
     public static final BooleanSetting openLinkBrowser;
+    public static final BooleanSetting imageSearchPrivate;
     public static final BooleanSetting autoRefreshThread;
+    public static final BooleanSetting loadFromArchives;
     //    public static final BooleanSetting imageAutoLoad;
     public static final OptionsSetting<MediaAutoLoadMode> imageAutoLoadNetwork;
     public static final OptionsSetting<MediaAutoLoadMode> videoAutoLoadNetwork;
@@ -125,6 +127,9 @@ public class ChanSettings {
     public static final BooleanSetting revealTextSpoilers;
     public static final BooleanSetting repliesButtonsBottom;
     public static final BooleanSetting confirmExit;
+    public static final BooleanSetting appLock;
+    public static final IntegerSetting appLockTimeout;
+    public static final BooleanSetting hideFromRecents;
     public static final BooleanSetting tapNoReply;
     public static final BooleanSetting volumeKeysScrolling;
     public static final BooleanSetting postFullDate;
@@ -182,7 +187,9 @@ public class ChanSettings {
         fontCondensed = new BooleanSetting(p, "preference_font_condensed", false);
         openLinkConfirmation = new BooleanSetting(p, "preference_open_link_confirmation", false);
         openLinkBrowser = new BooleanSetting(p, "preference_open_link_browser", false);
+        imageSearchPrivate = new BooleanSetting(p, "preference_image_search_private", false);
         autoRefreshThread = new BooleanSetting(p, "preference_auto_refresh_thread", true);
+        loadFromArchives = new BooleanSetting(p, "preference_load_from_archives", true);
 //        imageAutoLoad = new BooleanSetting(p, "preference_image_auto_load", true);
         imageAutoLoadNetwork = new OptionsSetting<>(p, "preference_image_auto_load_network", MediaAutoLoadMode.class, MediaAutoLoadMode.WIFI);
         videoAutoLoadNetwork = new OptionsSetting<>(p, "preference_video_auto_load_network", MediaAutoLoadMode.class, MediaAutoLoadMode.WIFI);
@@ -213,6 +220,10 @@ public class ChanSettings {
         revealTextSpoilers = new BooleanSetting(p, "preference_reveal_text_spoilers", false);
         repliesButtonsBottom = new BooleanSetting(p, "preference_buttons_bottom", false);
         confirmExit = new BooleanSetting(p, "preference_confirm_exit", false);
+        appLock = new BooleanSetting(p, "preference_app_lock", false);
+        // In seconds
+        appLockTimeout = new IntegerSetting(p, "preference_app_lock_timeout", 60);
+        hideFromRecents = new BooleanSetting(p, "preference_hide_from_recents", false);
         tapNoReply = new BooleanSetting(p, "preference_tap_no_reply", false);
         volumeKeysScrolling = new BooleanSetting(p, "preference_volume_key_scrolling", false);
         postFullDate = new BooleanSetting(p, "preference_post_full_date", false);

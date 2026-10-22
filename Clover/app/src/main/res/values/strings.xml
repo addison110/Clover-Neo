@@ -106,6 +106,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="action_transparency_toggle">Toggle opacity</string>
     <string name="action_search">Search</string>
     <string name="action_search_image">Image search</string>
+    <string name="image_search_unavailable">This file can\'t be searched</string>
+    <string name="open_link_private_unsupported">Your browser can\'t open incognito tabs. Update Chrome, or turn off Private image search in settings.</string>
     <string name="action_switch_catalog">Catalog mode</string>
     <string name="action_switch_board">Board mode</string>
     <string name="action_scroll_to_top">Top</string>
@@ -155,6 +157,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="thread_refresh_now">Loading</string>
     <string name="thread_refresh_countdown">Loading in %1$ds</string>
     <string name="thread_load_failed_retry">Retry</string>
+    <string name="thread_open_in_archive">Open in archive</string>
+    <string name="thread_showing_archive">The thread is gone from the site, showing the copy from %1$s</string>
     <string name="thread_archived">Archived</string>
     <string name="thread_closed">Closed</string>
     <plurals name="thread_new_posts">
@@ -503,10 +507,32 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="setting_force_english_locale">Always use English for the language of the app</string>
     <string name="setting_force_english_locale_toggle_notice">Language will be applied on the next app start.</string>
     <string name="setting_auto_refresh_thread">Auto refresh threads</string>
+    <string name="setting_load_from_archives">Load deleted threads from archives</string>
+    <string name="setting_load_from_archives_description">When a 4chan thread is gone, show the copy kept by an archive such as Desuarchive or 4plebs</string>
     <string name="setting_confirm_exit">Confirm before exit</string>
     <string name="setting_controller_swipeable">Allow screens to be swiped away</string>
     <string name="setting_clear_thread_hides">Clear all thread hides</string>
     <string name="setting_cleared_thread_hides">Cleared all thread hides</string>
+
+    <!-- Behavior privacy group -->
+    <string name="settings_group_privacy">Privacy</string>
+    <string name="setting_app_lock">Lock the app</string>
+    <string name="setting_app_lock_description">Ask for your fingerprint, face or screen lock when the app opens</string>
+    <string name="setting_app_lock_unavailable">Set up a screen lock in the Android settings first</string>
+    <string name="setting_app_lock_timeout">Lock again after</string>
+    <string name="setting_app_lock_timeout_immediately">Leaving the app</string>
+    <string name="setting_app_lock_timeout_seconds">%d seconds away</string>
+    <plurals name="setting_app_lock_timeout_minutes">
+        <item quantity="one">%d minute away</item>
+        <item quantity="other">%d minutes away</item>
+    </plurals>
+    <string name="setting_app_lock_timeout_hour">1 hour away</string>
+    <string name="setting_hide_from_recents">Hide from recent apps</string>
+    <string name="setting_hide_from_recents_description">Show a blank preview in the app switcher. On Android 12 and older this also blocks screenshots.</string>
+
+    <string name="app_lock_locked">%s is locked</string>
+    <string name="app_lock_unlock">Unlock</string>
+    <string name="app_lock_prompt_title">Unlock %s</string>
 
     <!-- Behavior reply group -->
     <string name="settings_group_reply">Reply</string>
@@ -526,6 +552,8 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="setting_tap_no_rely">Tap the post number to reply</string>
     <string name="setting_open_link_confirmation">Ask before opening links</string>
     <string name="setting_open_link_browser">Always open links in external browser</string>
+    <string name="setting_image_search_private">Private image search</string>
+    <string name="setting_image_search_private_description">Open image searches in an incognito tab that keeps no history or cookies</string>
 
 
     <!-- Behavior proxy group -->

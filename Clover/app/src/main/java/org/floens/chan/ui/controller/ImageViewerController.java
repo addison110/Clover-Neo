@@ -329,10 +329,20 @@ public class ImageViewerController extends Controller implements ImageViewerPres
         menu.setCallback(new FloatingMenu.FloatingMenuCallback() {
             @Override
             public void onFloatingMenuItemClicked(FloatingMenu menu, FloatingMenuItem item) {
+                PostImage postImage = presenter.getCurrentPostImage();
+                HttpUrl searchImageUrl = postImage == null ? null : getSearchImageUrl(postImage);
+                if (searchImageUrl == null) {
+                    Toast.makeText(context, R.string.image_search_unavailable, Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 for (ImageSearch imageSearch : ImageSearch.engines) {
                     if (((Integer) item.getId()) == imageSearch.getId()) {
-                        final HttpUrl searchImageUrl = getSearchImageUrl(presenter.getCurrentPostImage());
-                        AndroidUtils.openLinkInBrowser((Activity) context, imageSearch.getUrl(searchImageUrl.toString()));
+                        String searchUrl = imageSearch.getUrl(searchImageUrl.toString());
+                        if (ChanSettings.imageSearchPrivate.get()) {
+                            AndroidUtils.openLinkInPrivateBrowser((Activity) context, searchUrl);
+                        } else {
+                            AndroidUtils.openLinkInBrowser((Activity) context, searchUrl);
+                        }
                         break;
                     }
                 }
@@ -566,6 +576,8 @@ public class ImageViewerController extends Controller implements ImageViewerPres
      * @return url of an image to be searched
      */
     private HttpUrl getSearchImageUrl(final PostImage postImage) {
-        return postImage.type == PostImage.Type.MOVIE ? postImage.thumbnailUrl : postImage.imageUrl;
+        // Search engines can't read videos or flash files, so search with their thumbnail instead.
+        boolean isImage = postImage.type == PostImage.Type.STATIC || postImage.type == PostImage.Type.GIF;
+        return isImage ? postImage.imageUrl : postImage.thumbnailUrl;
     }
 }

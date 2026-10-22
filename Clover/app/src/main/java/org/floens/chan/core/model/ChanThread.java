@@ -18,6 +18,7 @@
 package org.floens.chan.core.model;
 
 import org.floens.chan.core.model.orm.Loadable;
+import org.floens.chan.core.site.archive.Archive;
 
 import java.util.List;
 
@@ -31,6 +32,10 @@ public class ChanThread {
      * If the posts come from the copy saved for offline viewing instead of the site.
      */
     public boolean savedCopy = false;
+    /**
+     * The archive the posts come from, when the thread is gone from the site.
+     */
+    public Archive archive;
 
     public ChanThread(Loadable loadable, List<Post> posts) {
         this.loadable = loadable;

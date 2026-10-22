@@ -32,6 +32,7 @@ import org.floens.chan.core.model.Post;
 import org.floens.chan.core.model.PostImage;
 import org.floens.chan.core.model.orm.Filter;
 import org.floens.chan.core.model.orm.Loadable;
+import org.floens.chan.core.site.archive.Archive;
 import org.floens.chan.core.model.orm.Pin;
 import org.floens.chan.core.settings.ChanSettings;
 import org.floens.chan.ui.helper.RefreshUIMessage;
@@ -145,6 +146,12 @@ public abstract class ThreadController extends Controller implements
     @Override
     public void openReportController(final Post post) {
         navigationController.pushController(new ReportController(context, post));
+    }
+
+    @Override
+    public void openArchiveCheck(Archive archive, Loadable loadable) {
+        navigationController.pushController(new ArchiveCheckController(context, archive, loadable,
+                (archiveFound, json) -> threadLayout.getPresenter().loadFromArchive(archiveFound, json)));
     }
 
     public void selectPostImage(PostImage postImage) {

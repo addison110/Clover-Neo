@@ -631,6 +631,16 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
         }
     }
 
+    // Controls that show as a video starts hide after the timeout, which started while the video
+    // was still loading. Count it from the first frame instead, the timeout restarts when set.
+    @Override
+    @OptIn(markerClass = UnstableApi.class)
+    public void onRenderedFirstFrame() {
+        if (exoVideoView != null && exoPlayer.getPlayWhenReady()) {
+            exoVideoView.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
+        }
+    }
+
     @Override
     public void onTracksChanged(Tracks tracks) {
         if (tracks.containsType(C.TRACK_TYPE_AUDIO)) {

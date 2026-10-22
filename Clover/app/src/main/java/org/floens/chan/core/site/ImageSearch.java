@@ -17,6 +17,8 @@
  */
 package org.floens.chan.core.site;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +31,18 @@ public abstract class ImageSearch {
 
     public abstract String getUrl(String imageUrl);
 
+    /**
+     * Encodes the image url so it is passed as a single query parameter, even when it contains
+     * characters like {@code &} or {@code ?}.
+     */
+    static String encode(String imageUrl) {
+        try {
+            return URLEncoder.encode(imageUrl, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     static {
         engines.add(new ImageSearch() {
             public int getId() {
@@ -40,7 +54,7 @@ public abstract class ImageSearch {
             }
 
             public String getUrl(String imageUrl) {
-                return "https://www.google.com/searchbyimage?image_url=" + imageUrl;
+                return "https://lens.google.com/uploadbyurl?url=" + encode(imageUrl);
             }
         });
 
@@ -54,7 +68,7 @@ public abstract class ImageSearch {
             }
 
             public String getUrl(String imageUrl) {
-                return "http://iqdb.org/?url=" + imageUrl;
+                return "https://iqdb.org/?url=" + encode(imageUrl);
             }
         });
 
@@ -64,11 +78,11 @@ public abstract class ImageSearch {
             }
 
             public String getName() {
-                return "SauceNao";
+                return "SauceNAO";
             }
 
             public String getUrl(String imageUrl) {
-                return "https://saucenao.com/search.php?url=" + imageUrl;
+                return "https://saucenao.com/search.php?url=" + encode(imageUrl);
             }
         });
 
@@ -82,7 +96,7 @@ public abstract class ImageSearch {
             }
 
             public String getUrl(String imageUrl) {
-                return "http://tineye.com/search/?url=" + imageUrl;
+                return "https://tineye.com/search/?url=" + encode(imageUrl);
             }
         });
 
@@ -92,11 +106,11 @@ public abstract class ImageSearch {
             }
 
             public String getName() {
-                return "WAIT";
+                return "trace.moe";
             }
 
             public String getUrl(String imageUrl) {
-                return "https://trace.moe/?url=" + imageUrl;
+                return "https://trace.moe/?url=" + encode(imageUrl);
             }
         });
 
@@ -110,7 +124,7 @@ public abstract class ImageSearch {
             }
 
             public String getUrl(String imageUrl) {
-                return "https://www.yandex.com/images/search?rpt=imageview&img_url=" + imageUrl;
+                return "https://yandex.com/images/search?rpt=imageview&url=" + encode(imageUrl);
             }
         });
     }

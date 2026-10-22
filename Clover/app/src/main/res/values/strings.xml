@@ -106,6 +106,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <string name="action_transparency_toggle">Toggle opacity</string>
     <string name="action_search">Search</string>
     <string name="action_search_image">Image search</string>
+    <string name="image_search_unavailable">This file can\'t be searched</string>
+    <string name="open_link_private_unsupported">Your browser can\'t open incognito tabs. Update Chrome, or turn off Private image search in settings.</string>
     <string name="action_switch_catalog">Catalog mode</string>
     <string name="action_switch_board">Board mode</string>
     <string name="action_scroll_to_top">Top</string>
@@ -526,6 +528,8 @@ Enable \"Play videos with external player\" in the settings to play videos with 
     <string name="setting_tap_no_rely">Tap the post number to reply</string>
     <string name="setting_open_link_confirmation">Ask before opening links</string>
     <string name="setting_open_link_browser">Always open links in external browser</string>
+    <string name="setting_image_search_private">Private image search</string>
+    <string name="setting_image_search_private_description">Open image searches in an incognito tab that keeps no history or cookies</string>
 
 
     <!-- Behavior proxy group -->

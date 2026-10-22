@@ -155,6 +155,10 @@ public class BehaviourSettingsController extends SettingsController {
             post.add(new BooleanSettingView(this,
                     ChanSettings.openLinkBrowser,
                     R.string.setting_open_link_browser, 0));
+            post.add(new BooleanSettingView(this,
+                    ChanSettings.imageSearchPrivate,
+                    R.string.setting_image_search_private,
+                    R.string.setting_image_search_private_description));
 
             groups.add(post);
         }

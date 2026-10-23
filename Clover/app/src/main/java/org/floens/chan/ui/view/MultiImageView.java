@@ -17,6 +17,7 @@
  */
 package org.floens.chan.ui.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -27,14 +28,19 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import androidx.annotation.OptIn;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
@@ -42,6 +48,7 @@ import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
 import androidx.media3.common.Tracks;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
@@ -70,6 +77,7 @@ import pl.droidsonroids.gif.GifDrawable;
 import pl.droidsonroids.gif.GifImageView;
 
 import static org.floens.chan.Chan.inject;
+import static org.floens.chan.utils.AndroidUtils.dp;
 
 public class MultiImageView extends FrameLayout implements View.OnClickListener, LifecycleObserver, Player.Listener {
     public enum Mode {
@@ -100,6 +108,7 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
 
     private VideoView videoView;
     private PlayerView exoVideoView;
+    private TextView seekFeedback;
     private boolean videoError = false;
     private MediaPlayer mediaPlayer;
     private ExoPlayer exoPlayer;
@@ -448,8 +457,12 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
 
             onModeLoaded(Mode.MOVIE, videoView);
         } else if (ChanSettings.videoUseExoplayer.get()) {
-            exoVideoView = new PlayerView(getContext());
-            exoPlayer = new ExoPlayer.Builder(getContext()).build();
+            exoVideoView = createPlayerView();
+            int seekIncrement = ChanSettings.videoSeekIncrement.get();
+            exoPlayer = new ExoPlayer.Builder(getContext())
+                    .setSeekBackIncrementMs(seekIncrement)
+                    .setSeekForwardIncrementMs(seekIncrement)
+                    .build();
             exoVideoView.setPlayer(exoPlayer);
 
             exoPlayer.setRepeatMode(ChanSettings.videoAutoLoop.get() ?
@@ -501,6 +514,130 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
                 Logger.e(TAG, "Video view start error", e);
                 onVideoError();
             }
+        }
+    }
+
+    // Setting up the controls is unstable API in Media3
+    @OptIn(markerClass = UnstableApi.class)
+    private PlayerView createPlayerView() {
+        PlayerView view;
+        if ("bottom".equals(ChanSettings.videoControlsPosition.get())) {
+            view = (PlayerView) LayoutInflater.from(getContext())
+                    .inflate(R.layout.video_player_bottom, this, false);
+            // Media3's animation slides the parts of its own layout separately
+            view.setControllerAnimationEnabled(false);
+        } else {
+            view = new PlayerView(getContext());
+        }
+
+        view.setControllerAutoShow(ChanSettings.videoControlsAutoShow.get());
+        view.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
+        boolean seekButtons = ChanSettings.videoSeekButtons.get();
+        view.setShowRewindButton(seekButtons);
+        view.setShowFastForwardButton(seekButtons);
+        // There is only one video, there's nothing to skip to
+        view.setShowPreviousButton(false);
+        view.setShowNextButton(false);
+
+        if (ChanSettings.videoDoubleTapSeek.get()) {
+            setupDoubleTapSeek(view);
+        }
+        return view;
+    }
+
+    // Double-tapping the left half skips back, the right half forward. A single tap still shows or
+    // hides the controls, it waits a moment to know it isn't a double tap.
+    // The gesture detector calls performClick for the single tap.
+    @SuppressLint("ClickableViewAccessibility")
+    @OptIn(markerClass = UnstableApi.class)
+    private void setupDoubleTapSeek(PlayerView view) {
+        GestureDetector detector = new GestureDetector(getContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onDown(MotionEvent e) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onSingleTapConfirmed(MotionEvent e) {
+                        // Shows or hides the controls
+                        view.performClick();
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onDoubleTap(MotionEvent e) {
+                        Player player = view.getPlayer();
+                        if (player == null) {
+                            return false;
+                        }
+                        boolean back = e.getX() < view.getWidth() / 2f;
+                        if (back) {
+                            player.seekBack();
+                        } else {
+                            player.seekForward();
+                        }
+                        Logger.i(TAG, back ? "Double tap, skipped back" : "Double tap, skipped forward");
+                        showSeekFeedback(view, back);
+                        return true;
+                    }
+                });
+        view.setOnTouchListener((v, event) -> detector.onTouchEvent(event));
+    }
+
+    @OptIn(markerClass = UnstableApi.class)
+    private void showSeekFeedback(PlayerView view, boolean back) {
+        FrameLayout overlay = view.getOverlayFrameLayout();
+        if (overlay == null) {
+            return;
+        }
+        if (seekFeedback == null || seekFeedback.getParent() != overlay) {
+            seekFeedback = new TextView(getContext());
+            seekFeedback.setTextColor(0xffffffff);
+            seekFeedback.setTextSize(16);
+            seekFeedback.setBackgroundColor(0x99000000);
+            seekFeedback.setPadding(dp(12), dp(6), dp(12), dp(6));
+            overlay.addView(seekFeedback, new FrameLayout.LayoutParams(
+                    LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        }
+
+        int seconds = ChanSettings.videoSeekIncrement.get() / 1000;
+        seekFeedback.setText(getContext().getString(
+                back ? R.string.video_skipped_back : R.string.video_skipped_forward, seconds));
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) seekFeedback.getLayoutParams();
+        params.gravity = Gravity.CENTER_VERTICAL | (back ? Gravity.START : Gravity.END);
+        params.setMarginStart(dp(32));
+        params.setMarginEnd(dp(32));
+        seekFeedback.setLayoutParams(params);
+
+        seekFeedback.animate().cancel();
+        seekFeedback.setAlpha(1f);
+        seekFeedback.animate().alpha(0f).setStartDelay(500).setDuration(300).start();
+    }
+
+    // Keep the controls up while the video is paused, hide them again after the timeout once it
+    // plays. PlayerView only does this itself when the controls show as a video starts.
+    @Override
+    @OptIn(markerClass = UnstableApi.class)
+    public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
+        if (exoVideoView == null) {
+            return;
+        }
+        if (playWhenReady) {
+            exoVideoView.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
+        } else {
+            exoVideoView.setControllerShowTimeoutMs(0);
+            exoVideoView.showController();
+        }
+    }
+
+    // Controls that show as a video starts hide after the timeout, which started while the video
+    // was still loading. Count it from the first frame instead, the timeout restarts when set.
+    @Override
+    @OptIn(markerClass = UnstableApi.class)
+    public void onRenderedFirstFrame() {
+        if (exoVideoView != null && exoPlayer.getPlayWhenReady()) {
+            exoVideoView.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
         }
     }
 

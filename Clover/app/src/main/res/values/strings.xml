@@ -582,8 +582,8 @@ If disabled, save the image with the filename the uploader assigned."
     <string name="setting_video_default_muted_description">If a video has audio, mute it by default.</string>
     <string name="setting_video_open_external">Play videos with external player</string>
     <string name="setting_video_open_external_description">Play videos in an external media player app</string>
-    <string name="setting_video_exoplayer">Enable new ExoPlayer</string>
-    <string name="setting_video_exoplayer_description">Use the new ExoPlayer for internal media player</string>
+    <string name="setting_video_exoplayer">Use the built-in video player</string>
+    <string name="setting_video_exoplayer_description">Plays every video format the same way on all phones. Turn it off only if videos don\'t play, to use Android\'s player instead</string>
     <string name="setting_share_url">Share URL to image</string>
     <string name="setting_share_url_description">Share the URL to the image instead of the image itself</string>
     <string name="settings_reveal_image_spoilers">Reveal image spoilers</string>
@@ -608,6 +608,34 @@ If disabled, save the image with the filename the uploader assigned."
 
     <string name="setting_video_auto_loop">Enable automatic video-looping</string>
     <string name="setting_video_auto_loop_description">Automatically loop video content</string>
+
+    <!-- Video player settings -->
+    <string name="settings_video">Video player</string>
+    <string name="settings_video_description">Controls, sound and looping</string>
+    <string name="settings_screen_video">Video player</string>
+    <string name="settings_group_video_player">Player</string>
+    <string name="settings_group_video_controls">Controls</string>
+    <string name="setting_video_controls_position">Controls</string>
+    <string name="setting_video_controls_position_bottom">Bar at the bottom</string>
+    <string name="setting_video_controls_position_center">Large buttons in the middle</string>
+    <string name="setting_video_controls_auto_show">Show controls when a video starts</string>
+    <string name="setting_video_controls_auto_show_description">Otherwise tap the video to show them</string>
+    <string name="setting_video_controls_timeout">Hide controls after</string>
+    <string name="setting_video_seek_buttons">Rewind and fast forward buttons</string>
+    <string name="setting_video_seek_buttons_description">Show buttons to skip back and ahead</string>
+    <string name="setting_video_controls_timeout_never">Never</string>
+    <string name="setting_video_double_tap_seek">Double-tap to skip</string>
+    <string name="setting_video_double_tap_seek_description">Double-tap the left or right side of a video to skip back or forward</string>
+    <string name="setting_video_seek_increment">Skip by</string>
+    <string name="video_skipped_back">−%d s</string>
+    <string name="video_skipped_forward">+%d s</string>
+    <string name="video_rewind">Rewind</string>
+    <string name="video_play_pause">Play or pause</string>
+    <string name="video_fast_forward">Fast forward</string>
+    <plurals name="setting_video_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
 
 
     <!-- Save location settings -->

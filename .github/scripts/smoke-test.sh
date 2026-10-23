@@ -84,7 +84,28 @@ THREAD=$(first_thread wsg)
 if [ -n "$THREAD" ]; then
     open_url "https://boards.4chan.org/wsg/thread/$THREAD"
     shot video-thread 6
-    tap resource-id ':id/thumbnail_view$' && shot video-playing 10
+    if tap resource-id ':id/thumbnail_view$'; then
+        shot video-playing 10
+        # Tapping the video shows its controls, by default in a bar at the bottom. Only the
+        # screenshot shows them: a UI dump waits for the screen to be idle, which it isn't while a
+        # video plays, and the controls have hidden by then.
+        adb shell input tap $((WIDTH / 2)) $((HEIGHT / 2))
+        shot video-controls 1
+        sleep 4
+
+        # Double-tapping the right side skips forward. Each "input" takes a while to start, so the
+        # first one starts in the background and the second 100 ms later, the taps land about
+        # 100 ms apart. The app logs the skip.
+        x=$((WIDTH * 3 / 4)); y=$((HEIGHT / 2))
+        adb shell "input tap $x $y & sleep 0.1; input tap $x $y; wait"
+        log "double tap $x $y"
+        shot video-skipped 0
+        if adb logcat -d | grep -q "Double tap, skipped forward"; then
+            log "the double tap skipped forward"
+        else
+            log "NOT FOUND the skip after double-tapping the video"
+        fi
+    fi
     back
     shot video-closed
 else

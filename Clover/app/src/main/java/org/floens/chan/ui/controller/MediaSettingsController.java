@@ -134,24 +134,17 @@ public class MediaSettingsController extends SettingsController implements
         {
             SettingsGroup media = new SettingsGroup(R.string.settings_group_media);
 
+            media.add(new LinkSettingView(this,
+                    R.string.settings_video, R.string.settings_video_description,
+                    v -> navigationController.pushController(
+                            new VideoSettingsController(context))));
+
             setupSaveLocationSetting(media);
 
             media.add(new BooleanSettingView(this,
                     ChanSettings.saveOriginalFilename,
                     R.string.setting_save_original_filename,
                     R.string.setting_save_original_filename_description));
-
-            media.add(new BooleanSettingView(this, ChanSettings.videoDefaultMuted,
-                    R.string.setting_video_default_muted,
-                    R.string.setting_video_default_muted_description));
-
-            media.add(new BooleanSettingView(this, ChanSettings.videoOpenExternal,
-                    R.string.setting_video_open_external,
-                    R.string.setting_video_open_external_description));
-
-            media.add(new BooleanSettingView(this, ChanSettings.videoUseExoplayer,
-                    R.string.setting_video_exoplayer,
-                    R.string.setting_video_exoplayer_description));
 
             media.add(new BooleanSettingView(this,
                     ChanSettings.shareUrl,
@@ -170,11 +163,6 @@ public class MediaSettingsController extends SettingsController implements
             SettingsGroup loading = new SettingsGroup(R.string.settings_group_media_loading);
 
             setupMediaLoadTypesSetting(loading);
-
-            loading.add(new BooleanSettingView(this,
-                    ChanSettings.videoAutoLoop,
-                    R.string.setting_video_auto_loop,
-                    R.string.setting_video_auto_loop_description));
 
             groups.add(loading);
         }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+Clover - 4chan browser https://github.com/Floens/Clover/
+Copyright (C) 2014  Floens
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!-- The player with its controls in a bar at the bottom. The controls can only be replaced from
+     XML, with controller_layout_id. -->
+<androidx.media3.ui.PlayerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:controller_layout_id="@layout/video_player_controls_bottom"
+    app:fastforward_icon="@drawable/ic_video_fast_forward_white_24dp"
+    app:pause_icon="@drawable/ic_video_pause_white_24dp"
+    app:play_icon="@drawable/ic_video_play_white_24dp"
+    app:rewind_icon="@drawable/ic_video_rewind_white_24dp" />

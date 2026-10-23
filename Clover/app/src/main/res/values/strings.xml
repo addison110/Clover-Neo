@@ -615,11 +615,13 @@ If disabled, save the image with the filename the uploader assigned."
     <string name="settings_screen_video">Video player</string>
     <string name="settings_group_video_player">Player</string>
     <string name="settings_group_video_controls">Controls</string>
-    <string name="setting_video_controls_position">Controls</string>
+    <string name="setting_video_controls_position">Control style</string>
     <string name="setting_video_controls_position_bottom">Bar at the bottom</string>
     <string name="setting_video_controls_position_center">Large buttons in the middle</string>
     <string name="setting_video_controls_auto_show">Show controls when a video starts</string>
     <string name="setting_video_controls_auto_show_description">Otherwise tap the video to show them</string>
+    <string name="setting_video_controls_always_show">Always show controls</string>
+    <string name="setting_video_controls_always_show_description">Keep the seek bar and buttons on screen while a video plays</string>
     <string name="setting_video_controls_timeout">Hide controls after</string>
     <string name="setting_video_seek_buttons">Rewind and fast forward buttons</string>
     <string name="setting_video_seek_buttons_description">Show buttons to skip back and ahead</string>

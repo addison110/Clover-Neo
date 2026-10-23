@@ -68,6 +68,17 @@ android {
 
     def hash = getCommitHash()
 
+    // A fixed debug key, so test builds from any machine or CI run update each other. It's not
+    // secret and can't update the official app, which only the release key in keys.properties signs
+    signingConfigs {
+        debug {
+            storeFile = file('dev.keystore')
+            storePassword = 'android'
+            keyAlias = 'androiddebugkey'
+            keyPassword = 'android'
+        }
+    }
+
     File f = file('keys.properties')
     boolean doSign = f.exists()
 

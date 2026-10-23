@@ -1,0 +1,11 @@
+<!-- Clover Neo's icon, the same artwork as Clover/app/src/main/res/drawable/ic_launcher_foreground.xml
+     on its background, in a circle. The launcher PNGs and icon_neo_512.png are rendered from it. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="15 15 78 78">
+  <circle cx="54" cy="54" r="36" fill="#1C2622"/>
+  <g fill="#4CAF50" transform="translate(54 54) scale(0.78) translate(-54 -54)">
+    <path d="M54,49 C50,46.5 41,40.5 41,30 A6.6,6.6 0 0 1 54,27.5 A6.6,6.6 0 0 1 67,30 C67,40.5 58,46.5 54,49 Z" transform="rotate(-64 54 54)"/>
+    <path d="M54,49 C50,46.5 41,40.5 41,30 A6.6,6.6 0 0 1 54,27.5 A6.6,6.6 0 0 1 67,30 C67,40.5 58,46.5 54,49 Z" transform="rotate(26 54 54)"/>
+    <path d="M54,49 C50,46.5 41,40.5 41,30 A6.6,6.6 0 0 1 54,27.5 A6.6,6.6 0 0 1 67,30 C67,40.5 58,46.5 54,49 Z" transform="rotate(116 54 54)"/>
+    <path d="M54,49 C50,46.5 41,40.5 41,30 A6.6,6.6 0 0 1 54,27.5 A6.6,6.6 0 0 1 67,30 C67,40.5 58,46.5 54,49 Z" transform="rotate(206 54 54)"/>
+  </g>
+</svg>

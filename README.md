@@ -1,3 +1,5 @@
+<img src="docs/icon_neo_512.png" alt="Clover Neo icon" width="96" align="right">
+
 # Clover Neo - imageboard browser for Android
 
 [![Build](https://github.com/addison110/Clover-Neo/actions/workflows/build.yml/badge.svg)](https://github.com/addison110/Clover-Neo/actions/workflows/build.yml)

@@ -1,4 +1,6 @@
-<img src="docs/icon_neo_512.png" alt="Clover Neo icon" width="96" align="right">
+<p align="center">
+  <img src="docs/icon_neo_512.png" alt="Clover Neo icon" width="96">
+</p>
 
 # Clover Neo - imageboard browser for Android
 

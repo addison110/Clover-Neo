@@ -108,6 +108,8 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
 
     private VideoView videoView;
     private PlayerView exoVideoView;
+    // Whether the controls were shown for this video's first frame
+    private boolean shownControlsAtStart;
     private TextView seekFeedback;
     private boolean videoError = false;
     private MediaPlayer mediaPlayer;
@@ -458,6 +460,7 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
             onModeLoaded(Mode.MOVIE, videoView);
         } else if (ChanSettings.videoUseExoplayer.get()) {
             exoVideoView = createPlayerView();
+            shownControlsAtStart = false;
             int seekIncrement = ChanSettings.videoSeekIncrement.get();
             exoPlayer = new ExoPlayer.Builder(getContext())
                     .setSeekBackIncrementMs(seekIncrement)
@@ -530,8 +533,11 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
             view = new PlayerView(getContext());
         }
 
-        view.setControllerAutoShow(ChanSettings.videoControlsAutoShow.get());
-        view.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
+        boolean alwaysShow = ChanSettings.videoControlsAlwaysShow.get();
+        view.setControllerAutoShow(alwaysShow || ChanSettings.videoControlsAutoShow.get());
+        view.setControllerShowTimeoutMs(controlsTimeout());
+        // Taps don't hide controls that are always shown
+        view.setControllerHideOnTouch(!alwaysShow);
         boolean seekButtons = ChanSettings.videoSeekButtons.get();
         view.setShowRewindButton(seekButtons);
         view.setShowFastForwardButton(seekButtons);
@@ -624,21 +630,35 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
             return;
         }
         if (playWhenReady) {
-            exoVideoView.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
+            exoVideoView.setControllerShowTimeoutMs(controlsTimeout());
         } else {
             exoVideoView.setControllerShowTimeoutMs(0);
             exoVideoView.showController();
         }
     }
 
-    // Controls that show as a video starts hide after the timeout, which started while the video
-    // was still loading. Count it from the first frame instead, the timeout restarts when set.
+    // Show the controls when the first frame is on screen, instead of relying on PlayerView's own
+    // auto show while the video was still loading, which a page swiped to could miss. Their
+    // timeout then counts from the first frame. Looping videos render a first frame every loop,
+    // only the first one shows them.
     @Override
     @OptIn(markerClass = UnstableApi.class)
     public void onRenderedFirstFrame() {
-        if (exoVideoView != null && exoPlayer.getPlayWhenReady()) {
-            exoVideoView.setControllerShowTimeoutMs(ChanSettings.videoControlsTimeout.get());
+        if (exoVideoView == null || shownControlsAtStart) {
+            return;
         }
+        shownControlsAtStart = true;
+        if (exoPlayer.getPlayWhenReady()) {
+            exoVideoView.setControllerShowTimeoutMs(controlsTimeout());
+        }
+        if (ChanSettings.videoControlsAlwaysShow.get() || ChanSettings.videoControlsAutoShow.get()) {
+            exoVideoView.showController();
+        }
+    }
+
+    // Controls that are always shown never hide, a timeout of 0 keeps them up
+    private int controlsTimeout() {
+        return ChanSettings.videoControlsAlwaysShow.get() ? 0 : ChanSettings.videoControlsTimeout.get();
     }
 
     @Override

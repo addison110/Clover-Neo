@@ -142,6 +142,7 @@ public class ChanSettings {
     public static final BooleanSetting videoAutoLoop;
     public static final StringSetting videoControlsPosition;
     public static final BooleanSetting videoControlsAutoShow;
+    public static final BooleanSetting videoControlsAlwaysShow;
     public static final IntegerSetting videoControlsTimeout;
     public static final BooleanSetting videoSeekButtons;
     public static final IntegerSetting videoSeekIncrement;
@@ -235,7 +236,8 @@ public class ChanSettings {
         videoDefaultMuted = new BooleanSetting(p, "preference_video_default_muted", true);
         videoAutoLoop = new BooleanSetting(p, "preference_video_loop", true);
         videoControlsPosition = new StringSetting(p, "preference_video_controls_position", "bottom");
-        videoControlsAutoShow = new BooleanSetting(p, "preference_video_controls_auto_show", false);
+        videoControlsAutoShow = new BooleanSetting(p, "preference_video_controls_auto_show", true);
+        videoControlsAlwaysShow = new BooleanSetting(p, "preference_video_controls_always_show", false);
         videoControlsTimeout = new IntegerSetting(p, "preference_video_controls_timeout", 3000);
         videoSeekButtons = new BooleanSetting(p, "preference_video_seek_buttons", true);
         videoSeekIncrement = new IntegerSetting(p, "preference_video_seek_increment", 10000);

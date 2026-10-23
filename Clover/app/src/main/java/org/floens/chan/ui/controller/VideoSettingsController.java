@@ -36,6 +36,9 @@ import static org.floens.chan.utils.AndroidUtils.getString;
 public class VideoSettingsController extends SettingsController {
     private SettingView builtInPlayer;
     private SettingView controlsPosition;
+    private SettingView autoShow;
+    private SettingView alwaysShow;
+    private SettingView timeout;
     private SettingView seekButtons;
     private SettingView doubleTapSeek;
     private SettingView seekIncrement;
@@ -57,6 +60,7 @@ public class VideoSettingsController extends SettingsController {
         buildPreferences();
 
         updateControlsVisibility();
+        updateAlwaysShowEnabled();
         updateSeekIncrementEnabled();
     }
 
@@ -66,6 +70,8 @@ public class VideoSettingsController extends SettingsController {
 
         if (item == builtInPlayer) {
             updateControlsVisibility();
+        } else if (item == alwaysShow) {
+            updateAlwaysShowEnabled();
         } else if (item == seekButtons || item == doubleTapSeek) {
             updateSeekIncrementEnabled();
         }
@@ -75,6 +81,13 @@ public class VideoSettingsController extends SettingsController {
     private void updateControlsVisibility() {
         View group = (View) controlsPosition.view.getParent();
         group.setVisibility(ChanSettings.videoUseExoplayer.get() ? View.VISIBLE : View.GONE);
+    }
+
+    // Always shown controls make showing them at the start and hiding them after a while moot
+    private void updateAlwaysShowEnabled() {
+        boolean always = ChanSettings.videoControlsAlwaysShow.get();
+        autoShow.setEnabled(!always);
+        timeout.setEnabled(!always);
     }
 
     // Only the skip buttons and double-tapping skip
@@ -124,7 +137,12 @@ public class VideoSettingsController extends SettingsController {
                     ChanSettings.videoControlsPosition,
                     R.string.setting_video_controls_position, positions));
 
-            controls.add(new BooleanSettingView(this,
+            alwaysShow = controls.add(new BooleanSettingView(this,
+                    ChanSettings.videoControlsAlwaysShow,
+                    R.string.setting_video_controls_always_show,
+                    R.string.setting_video_controls_always_show_description));
+
+            autoShow = controls.add(new BooleanSettingView(this,
                     ChanSettings.videoControlsAutoShow,
                     R.string.setting_video_controls_auto_show,
                     R.string.setting_video_controls_auto_show_description));
@@ -133,7 +151,7 @@ public class VideoSettingsController extends SettingsController {
             // Media3 keeps the controls visible without a timeout
             timeouts.add(new ListSettingView.Item<>(
                     getString(R.string.setting_video_controls_timeout_never), 0));
-            controls.add(new ListSettingView<>(this,
+            timeout = controls.add(new ListSettingView<>(this,
                     ChanSettings.videoControlsTimeout,
                     R.string.setting_video_controls_timeout, timeouts));
 

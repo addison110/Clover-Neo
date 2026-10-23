@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+</head>
+<body>
+<script type="text/javascript">
+(function() {
+// Sends the reply like the quick reply on 4chan's website: a form POST to sys.4chan.org with the
+// browser's cookies, asking for a JSON answer.
+function fail(message) {
+    ReplyCallback.onError(message);
+}
+
+function send(file) {
+    var form = new FormData();
+    var fields = JSON.parse(ReplyCallback.fields());
+    for (var name in fields) {
+        if (Object.prototype.hasOwnProperty.call(fields, name)) {
+            form.append(name, fields[name]);
+        }
+    }
+    if (file) {
+        form.append('upfile', file, ReplyCallback.fileName());
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', ReplyCallback.postUrl(), true);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.timeout = 120000;
+    xhr.onload = function() {
+        ReplyCallback.onResult(xhr.status, xhr.getResponseHeader('Content-Type') || '',
+            xhr.responseText);
+    };
+    xhr.onerror = function() {
+        fail('Connection error');
+    };
+    xhr.ontimeout = function() {
+        fail('timeout');
+    };
+    xhr.send(form);
+}
+
+if (ReplyCallback.hasFile()) {
+    // The app serves the file at this address, see Chan4WebViewReplyCall
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', ReplyCallback.uploadUrl(), true);
+    xhr.responseType = 'blob';
+    xhr.onload = function() {
+        send(xhr.response);
+    };
+    xhr.onerror = function() {
+        fail('Could not read the file');
+    };
+    xhr.send();
+} else {
+    send(null);
+}
+})();
+</script>
+</body>
+</html>

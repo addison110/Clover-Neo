@@ -42,12 +42,12 @@ import org.floens.chan.R;
 import org.floens.chan.core.model.ChanThread;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.presenter.ReplyPresenter;
-import org.floens.chan.core.site.Site;
 import org.floens.chan.core.site.SiteAuthentication;
 import org.floens.chan.core.site.http.Reply;
 import org.floens.chan.ui.activity.StartActivity;
 import org.floens.chan.ui.captcha.AuthenticationLayoutCallback;
 import org.floens.chan.ui.captcha.AuthenticationLayoutInterface;
+import org.floens.chan.ui.captcha.Chan4CaptchaLayout;
 import org.floens.chan.ui.captcha.CaptchaLayout;
 import org.floens.chan.ui.captcha.GenericWebViewAuthenticationLayout;
 import org.floens.chan.ui.captcha.LegacyCaptchaLayout;
@@ -259,7 +259,7 @@ public class ReplyLayout extends LoadView implements
     }
 
     @Override
-    public void initializeAuthentication(Site site,
+    public void initializeAuthentication(Loadable loadable,
                                          SiteAuthentication authentication,
                                          AuthenticationLayoutCallback callback,
                                          boolean useV2NoJsCaptcha) {
@@ -296,6 +296,11 @@ public class ReplyLayout extends LoadView implements
                     }
 
                     break;
+                case CHAN4_CAPTCHA: {
+                    authenticationLayout = new Chan4CaptchaLayout(getContext(),
+                            loadable.boardCode, loadable.isThreadMode() ? loadable.no : 0);
+                    break;
+                }
                 case GENERIC_WEBVIEW: {
                     GenericWebViewAuthenticationLayout view = new GenericWebViewAuthenticationLayout(getContext());
 
@@ -322,7 +327,7 @@ public class ReplyLayout extends LoadView implements
             AndroidUtils.hideKeyboard(this);
         }
 
-        authenticationLayout.initialize(site, callback);
+        authenticationLayout.initialize(loadable.site, callback);
         authenticationLayout.reset();
     }
 
@@ -366,7 +371,7 @@ public class ReplyLayout extends LoadView implements
         }
 
         authenticationLayout.onDestroy();
-        captchaContainer.removeView((CaptchaNoJsLayoutV2) authenticationLayout);
+        captchaContainer.removeView((View) authenticationLayout);
         authenticationLayout = null;
     }
 

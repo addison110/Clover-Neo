@@ -29,7 +29,6 @@ import org.floens.chan.core.model.orm.Board;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.model.orm.SavedReply;
 import org.floens.chan.core.settings.ChanSettings;
-import org.floens.chan.core.site.Site;
 import org.floens.chan.core.site.SiteActions;
 import org.floens.chan.core.site.SiteAuthentication;
 import org.floens.chan.core.site.http.HttpCall;
@@ -198,6 +197,7 @@ public class ReplyPresenter implements AuthenticationLayoutCallback, ImagePickDe
 
         draft.spoilerImage = draft.spoilerImage && board.spoilers;
 
+        draft.captchaChallenge = null;
         draft.captchaResponse = null;
         if (loadable.site.actions().postRequiresAuthentication()) {
             switchPage(Page.AUTHENTICATION, true);
@@ -433,7 +433,7 @@ public class ReplyPresenter implements AuthenticationLayoutCallback, ImagePickDe
 
                     // cleanup resources tied to the new captcha layout/presenter
                     callback.destroyCurrentAuthentication();
-                    callback.initializeAuthentication(loadable.site, authentication, this, useV2NoJsCaptcha);
+                    callback.initializeAuthentication(loadable, authentication, this, useV2NoJsCaptcha);
                     callback.setPage(Page.AUTHENTICATION, true);
 
                     break;
@@ -494,7 +494,7 @@ public class ReplyPresenter implements AuthenticationLayoutCallback, ImagePickDe
 
         void setPage(Page page, boolean animate);
 
-        void initializeAuthentication(Site site,
+        void initializeAuthentication(Loadable loadable,
                                       SiteAuthentication authentication,
                                       AuthenticationLayoutCallback callback,
                                       boolean useV2NoJsCaptcha);

@@ -3,7 +3,7 @@
 #
 # Walks through the main screens and saves a screenshot and UI dump of every step to OUT_DIR.
 # Steps that can't find their view are logged and skipped, the test only fails when the app
-# crashes or stops responding. It never submits a post.
+# crashes or stops responding. It opens the 4chan captcha but never submits a post.
 #
 # Usage: smoke-test.sh APK OUT_DIR
 set -u
@@ -61,6 +61,18 @@ if [ -n "$THREAD" ]; then
         type_into class 'EditText$' smoke
         shot reply-keyboard 3
         back
+        # Submit only opens the captcha, nothing is posted until the captcha's own Post button is
+        # tapped, and this test never taps it
+        if tap resource-id ':id/submit$'; then
+            # The captcha's own text isn't in the UI dump, see the screenshot for what it shows
+            shot reply-captcha 10
+            if python3 "$HERE/ui.py" "$OUT/current.xml" class 'WebView$' > /dev/null; then
+                log "the captcha view shows"
+            else
+                log "NOT FOUND the captcha view"
+            fi
+            back
+        fi
         back
         shot reply-closed
     fi

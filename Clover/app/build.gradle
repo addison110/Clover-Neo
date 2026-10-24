@@ -34,10 +34,10 @@ android {
         minSdk = 23
         targetSdk = 36
 
-        versionName = "v3.3.0"
+        versionName = "v3.3.1"
         // of the format XXYYZZ, where XX is major, YY is minor, ZZ is patch
         // (watch out for octal notation, never start with a 0)
-        versionCode = 30300
+        versionCode = 30301
     }
 
     compileOptions {

@@ -25,4 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <dimen name="grid_card_corner_radius">0dp</dimen>
 
     <dimen name="cell_post_thumbnail_size">72dp</dimen>
+
+    <!-- A bigger video seek bar than Media3's, so it's easier to scrub. These override Media3's
+         own sizes, so they apply to both control styles. -->
+    <dimen name="exo_styled_progress_bar_height">4dp</dimen>
+    <dimen name="exo_styled_progress_enabled_thumb_size">16dp</dimen>
+    <dimen name="exo_styled_progress_dragged_thumb_size">22dp</dimen>
+    <dimen name="exo_styled_progress_touch_target_height">48dp</dimen>
+    <dimen name="exo_styled_progress_layout_height">48dp</dimen>
 </resources>

@@ -538,6 +538,9 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
         view.setControllerShowTimeoutMs(controlsTimeout());
         // Taps don't hide controls that are always shown
         view.setControllerHideOnTouch(!alwaysShow);
+        if (alwaysShow) {
+            fitVideoAboveControls(view);
+        }
         boolean seekButtons = ChanSettings.videoSeekButtons.get();
         view.setShowRewindButton(seekButtons);
         view.setShowFastForwardButton(seekButtons);
@@ -549,6 +552,54 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
             setupDoubleTapSeek(view);
         }
         return view;
+    }
+
+    // Controls that are always shown would always cover the bottom of the video, so the video is
+    // fitted into the space above the seek bar and the bar under it instead. The controls are only
+    // laid out once they first show, the space is updated whenever their layout changes.
+    private void fitVideoAboveControls(PlayerView view) {
+        View controller = view.findViewById(androidx.media3.ui.R.id.exo_controller);
+        if (controller == null) {
+            return;
+        }
+        controller.addOnLayoutChangeListener((v, left, top, right, bottom,
+                                              oldLeft, oldTop, oldRight, oldBottom) -> {
+            int covered = 0;
+            for (int id : new int[]{androidx.media3.ui.R.id.exo_bottom_bar,
+                    androidx.media3.ui.R.id.exo_progress}) {
+                View part = controller.findViewById(id);
+                if (part != null && part.getVisibility() == View.VISIBLE && part.getHeight() > 0) {
+                    covered = Math.max(covered, controller.getHeight() - topIn(controller, part));
+                }
+            }
+            // Requesting a layout from inside a layout pass is ignored, post it
+            int margin = covered;
+            view.post(() -> setBottomMargin(view, margin));
+        });
+    }
+
+    private static int topIn(View ancestor, View view) {
+        int top = 0;
+        while (view != ancestor && view != null) {
+            top += view.getTop();
+            view = view.getParent() instanceof View ? (View) view.getParent() : null;
+        }
+        return top;
+    }
+
+    private static void setBottomMargin(PlayerView view, int margin) {
+        for (int id : new int[]{androidx.media3.ui.R.id.exo_content_frame,
+                androidx.media3.ui.R.id.exo_subtitles}) {
+            View child = view.findViewById(id);
+            if (child == null) {
+                continue;
+            }
+            MarginLayoutParams params = (MarginLayoutParams) child.getLayoutParams();
+            if (params.bottomMargin != margin) {
+                params.bottomMargin = margin;
+                child.setLayoutParams(params);
+            }
+        }
     }
 
     // Double-tapping the left half skips back, the right half forward. A single tap still shows or

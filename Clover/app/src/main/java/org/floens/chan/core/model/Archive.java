@@ -44,4 +44,28 @@ public class Archive {
             this.id = id;
         }
     }
+
+    /**
+     * Details of an archived thread, read from the thread's own JSON, shown in the archive list.
+     */
+    public static class ThreadInfo {
+        public final String subject;
+        public final String comment;
+        public final int replies;
+        public final int images;
+        /** Unix seconds, or 0 if unknown. */
+        public final long archivedOn;
+        /** Thumbnail URL, or null if the OP has no (visible) file. */
+        public final String thumbnailUrl;
+
+        public ThreadInfo(String subject, String comment, int replies, int images,
+                          long archivedOn, String thumbnailUrl) {
+            this.subject = subject;
+            this.comment = comment;
+            this.replies = replies;
+            this.images = images;
+            this.archivedOn = archivedOn;
+            this.thumbnailUrl = thumbnailUrl;
+        }
+    }
 }

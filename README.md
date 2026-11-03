@@ -12,7 +12,7 @@ Clover Neo is a maintained fork of [Clover](https://github.com/Floens/Clover), a
 
 Clover Neo installs as its own app (`io.github.addison110.cloverneo`) and can be installed next to the original Clover. To bring over your sites, boards, bookmarks, history, filters and settings, use "Import from Clover" in the settings with an adb backup of Clover.
 
-Requires Android 6.0 or newer.
+Requires Android 8.0 or newer.
 
 ## Issues and features
 Issues can be reported on the [Issues page](https://github.com/addison110/Clover-Neo/issues). Please search before reporting an issue to avoid duplicates!

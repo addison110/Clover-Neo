@@ -298,9 +298,14 @@ public class ArchiveController extends Controller implements ArchivePresenter.Ca
                     R.plurals.image, threadInfo.images, threadInfo.images));
             if (threadInfo.archivedOn > 0) {
                 text.append(" · ");
-                text.append(context.getString(R.string.archive_item_expired,
-                        DateUtils.getRelativeTimeSpanString(threadInfo.archivedOn * 1000L,
-                                Time.get(), DateUtils.MINUTE_IN_MILLIS, 0)));
+                long archivedMs = threadInfo.archivedOn * 1000L;
+                if (Time.get() - archivedMs < DateUtils.MINUTE_IN_MILLIS) {
+                    text.append(context.getString(R.string.archive_item_expired_now));
+                } else {
+                    text.append(context.getString(R.string.archive_item_expired,
+                            DateUtils.getRelativeTimeSpanString(archivedMs,
+                                    Time.get(), DateUtils.MINUTE_IN_MILLIS, 0)));
+                }
             }
             info.setText(text);
         }

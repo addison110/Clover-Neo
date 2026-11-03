@@ -23,6 +23,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,13 +41,18 @@ import org.floens.chan.ui.toolbar.ToolbarMenuItem;
 import org.floens.chan.ui.view.CrossfadeView;
 import org.floens.chan.ui.view.DividerItemDecoration;
 import org.floens.chan.ui.view.FastScrollerHelper;
+import org.floens.chan.ui.view.ThumbnailView;
+import org.floens.chan.utils.Time;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import static org.floens.chan.Chan.inject;
+import static org.floens.chan.utils.AndroidUtils.dp;
 
 public class ArchiveController extends Controller implements ArchivePresenter.Callback,
         ToolbarNavigationController.ToolbarSearchCallback,
@@ -111,6 +118,12 @@ public class ArchiveController extends Controller implements ArchivePresenter.Ca
         presenter.create(this, board);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        presenter.destroy();
+    }
+
     private void searchClicked(ToolbarMenuItem item) {
         ((ToolbarNavigationController) navigationController).showSearch();
     }
@@ -158,12 +171,24 @@ public class ArchiveController extends Controller implements ArchivePresenter.Ca
         navigationController.pushController(threadController);
     }
 
+    @Override
+    public boolean isItemVisible(int id) {
+        return adapter.boundIds.contains(id);
+    }
+
+    @Override
+    public void onThreadInfoLoaded(int id) {
+        adapter.notifyItemChangedById(id);
+    }
+
     private void onItemClicked(Archive.ArchiveItem item) {
         presenter.onItemClicked(item);
     }
 
     private class ArchiveAdapter extends RecyclerView.Adapter<ArchiveCell> {
         private List<Archive.ArchiveItem> archiveItems = new ArrayList<>();
+        // Ids of the rows that currently have a view, so off-screen rows aren't fetched.
+        private final Set<Integer> boundIds = new HashSet<>();
 
         @Override
         public int getItemCount() {
@@ -180,8 +205,29 @@ public class ArchiveController extends Controller implements ArchivePresenter.Ca
         public void onBindViewHolder(ArchiveCell holder, int position) {
             Archive.ArchiveItem archiveItem = archiveItems.get(position);
 
+            if (holder.item != null) {
+                boundIds.remove(holder.item.id);
+            }
             holder.item = archiveItem;
-            holder.text.setText(archiveItem.description);
+            boundIds.add(archiveItem.id);
+            holder.bind(presenter.getThreadInfo(archiveItem));
+        }
+
+        @Override
+        public void onViewRecycled(ArchiveCell holder) {
+            if (holder.item != null) {
+                boundIds.remove(holder.item.id);
+            }
+            holder.thumbnail.setUrl(null, 0, 0);
+        }
+
+        void notifyItemChangedById(int id) {
+            for (int i = 0; i < archiveItems.size(); i++) {
+                if (archiveItems.get(i).id == id) {
+                    notifyItemChanged(i);
+                    return;
+                }
+            }
         }
 
         public void setArchiveItems(List<Archive.ArchiveItem> archiveItems) {
@@ -191,7 +237,10 @@ public class ArchiveController extends Controller implements ArchivePresenter.Ca
     }
 
     private class ArchiveCell extends RecyclerView.ViewHolder {
-        private TextView text;
+        private final ThumbnailView thumbnail;
+        private final TextView title;
+        private final TextView comment;
+        private final TextView info;
         private Archive.ArchiveItem item;
 
         public ArchiveCell(View itemView) {
@@ -199,7 +248,61 @@ public class ArchiveController extends Controller implements ArchivePresenter.Ca
 
             itemView.setOnClickListener(v -> onItemClicked(item));
 
-            text = itemView.findViewById(R.id.text);
+            thumbnail = itemView.findViewById(R.id.thumbnail);
+            thumbnail.setRounding(dp(2));
+            title = itemView.findViewById(R.id.title);
+            comment = itemView.findViewById(R.id.comment);
+            info = itemView.findViewById(R.id.info);
+        }
+
+        void bind(Archive.ThreadInfo threadInfo) {
+            if (threadInfo == null) {
+                // Not loaded (yet): show what the archive page gave us.
+                thumbnail.setVisibility(View.VISIBLE);
+                thumbnail.setUrl(null, 0, 0);
+                title.setVisibility(View.GONE);
+                comment.setText(item.description);
+                info.setText(context.getString(R.string.archive_item_no, item.id));
+                return;
+            }
+
+            if (threadInfo.thumbnailUrl != null) {
+                thumbnail.setVisibility(View.VISIBLE);
+                thumbnail.setUrl(threadInfo.thumbnailUrl, dp(64), dp(64));
+            } else {
+                thumbnail.setUrl(null, 0, 0);
+                thumbnail.setVisibility(View.GONE);
+            }
+
+            if (!TextUtils.isEmpty(threadInfo.subject)) {
+                title.setVisibility(View.VISIBLE);
+                title.setText(threadInfo.subject);
+            } else {
+                title.setVisibility(View.GONE);
+            }
+
+            if (!TextUtils.isEmpty(threadInfo.comment)) {
+                comment.setVisibility(View.VISIBLE);
+                comment.setText(threadInfo.comment);
+            } else {
+                comment.setVisibility(TextUtils.isEmpty(threadInfo.subject)
+                        ? View.VISIBLE : View.GONE);
+                comment.setText(item.description);
+            }
+
+            StringBuilder text = new StringBuilder();
+            text.append(context.getResources().getQuantityString(
+                    R.plurals.reply, threadInfo.replies, threadInfo.replies));
+            text.append(" · ");
+            text.append(context.getResources().getQuantityString(
+                    R.plurals.image, threadInfo.images, threadInfo.images));
+            if (threadInfo.archivedOn > 0) {
+                text.append(" · ");
+                text.append(context.getString(R.string.archive_item_expired,
+                        DateUtils.getRelativeTimeSpanString(threadInfo.archivedOn * 1000L,
+                                Time.get(), DateUtils.MINUTE_IN_MILLIS, 0)));
+            }
+            info.setText(text);
         }
     }
 }

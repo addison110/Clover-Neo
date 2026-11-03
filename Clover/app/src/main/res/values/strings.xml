@@ -271,6 +271,8 @@ If the pattern matches then the post can be hidden or highlighted.<br>
 
     <string name="archive_title">%s archive</string>
     <string name="archive_error">Error loading archive</string>
+    <string name="archive_item_no">No. %d</string>
+    <string name="archive_item_expired">expired %s</string>
 
     <string name="drawer_pinned">Bookmarked threads</string>
     <string name="drawer_pin_removed">Removed \"%1$s\"</string>

@@ -17,14 +17,26 @@
  */
 package org.floens.chan.core.presenter;
 
+import android.os.Handler;
+import android.os.Looper;
+
+import com.android.volley.RequestQueue;
+
 import org.floens.chan.core.database.DatabaseManager;
 import org.floens.chan.core.model.Archive;
 import org.floens.chan.core.model.orm.Board;
 import org.floens.chan.core.model.orm.Loadable;
 import org.floens.chan.core.site.SiteActions;
+import org.floens.chan.core.site.sites.chan4.Chan4ArchiveThreadInfoRequest;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Locale;
 
 import javax.inject.Inject;
@@ -32,7 +44,22 @@ import javax.inject.Inject;
 import static android.text.TextUtils.isEmpty;
 
 public class ArchivePresenter implements SiteActions.ArchiveListener {
+    /**
+     * Pause between two thread info requests. 4chan asks API clients to keep requests slow,
+     * and only the rows on screen are loaded, so this stays a trickle.
+     */
+    private static final long INFO_REQUEST_DELAY_MS = 300;
+
     private DatabaseManager databaseManager;
+    private RequestQueue requestQueue;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private final Map<Integer, Archive.ThreadInfo> threadInfos = new HashMap<>();
+    private final Set<Integer> failedThreadInfos = new HashSet<>();
+    // Newest request first, so the rows the user just scrolled to load first.
+    private final Deque<Integer> infoQueue = new ArrayDeque<>();
+    private boolean infoRequestRunning = false;
+    private boolean destroyed = false;
 
     private Callback callback;
     private Board board;
@@ -44,8 +71,72 @@ public class ArchivePresenter implements SiteActions.ArchiveListener {
     private List<Archive.ArchiveItem> filteredItems = new ArrayList<>();
 
     @Inject
-    public ArchivePresenter(DatabaseManager databaseManager) {
+    public ArchivePresenter(DatabaseManager databaseManager, RequestQueue requestQueue) {
         this.databaseManager = databaseManager;
+        this.requestQueue = requestQueue;
+    }
+
+    public void destroy() {
+        destroyed = true;
+        infoQueue.clear();
+        handler.removeCallbacksAndMessages(null);
+        requestQueue.cancelAll(this);
+    }
+
+    /**
+     * Returns the loaded details of an archived thread, or null if they are not loaded yet. Asks
+     * for them to be loaded when they're missing.
+     */
+    public Archive.ThreadInfo getThreadInfo(Archive.ArchiveItem item) {
+        Archive.ThreadInfo info = threadInfos.get(item.id);
+        if (info == null && !failedThreadInfos.contains(item.id)) {
+            infoQueue.remove(item.id);
+            infoQueue.addFirst(item.id);
+            if (!infoRequestRunning) {
+                loadNextThreadInfo();
+            }
+        }
+        return info;
+    }
+
+    private void loadNextThreadInfo() {
+        Integer next = null;
+        while (!infoQueue.isEmpty()) {
+            Integer candidate = infoQueue.pollFirst();
+            // Skip rows that were scrolled past before their turn came.
+            if (!threadInfos.containsKey(candidate) && callback.isItemVisible(candidate)) {
+                next = candidate;
+                break;
+            }
+        }
+        if (next == null || destroyed) {
+            infoRequestRunning = false;
+            return;
+        }
+
+        infoRequestRunning = true;
+        final int id = next;
+        Chan4ArchiveThreadInfoRequest request = new Chan4ArchiveThreadInfoRequest(
+                board.site, board, id,
+                info -> {
+                    threadInfos.put(id, info);
+                    callback.onThreadInfoLoaded(id);
+                    scheduleNextThreadInfo();
+                },
+                error -> {
+                    // Usually a thread that was deleted after being archived; keep its excerpt.
+                    failedThreadInfos.add(id);
+                    scheduleNextThreadInfo();
+                });
+        request.setTag(this);
+        requestQueue.add(request);
+    }
+
+    private void scheduleNextThreadInfo() {
+        if (destroyed) {
+            return;
+        }
+        handler.postDelayed(this::loadNextThreadInfo, INFO_REQUEST_DELAY_MS);
     }
 
     public void create(Callback callback, Board board) {
@@ -121,7 +212,14 @@ public class ArchivePresenter implements SiteActions.ArchiveListener {
     }
 
     private boolean filterApplies(Archive.ArchiveItem item, String filter) {
-        return item.description.toLowerCase(Locale.ENGLISH).contains(filter.toLowerCase());
+        String lowerFilter = filter.toLowerCase(Locale.ENGLISH);
+        if (item.description.toLowerCase(Locale.ENGLISH).contains(lowerFilter)
+                || String.valueOf(item.id).contains(lowerFilter)) {
+            return true;
+        }
+        Archive.ThreadInfo info = threadInfos.get(item.id);
+        return info != null && info.subject != null
+                && info.subject.toLowerCase(Locale.ENGLISH).contains(lowerFilter);
     }
 
     public interface Callback {
@@ -134,5 +232,9 @@ public class ArchivePresenter implements SiteActions.ArchiveListener {
         void showError(boolean show);
 
         void openThread(Loadable loadable);
+
+        boolean isItemVisible(int id);
+
+        void onThreadInfoLoaded(int id);
     }
 }

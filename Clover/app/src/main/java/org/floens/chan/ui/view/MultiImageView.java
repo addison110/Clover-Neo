@@ -540,6 +540,8 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
         view.setControllerHideOnTouch(!alwaysShow);
         if (alwaysShow) {
             fitVideoAboveControls(view);
+            // The video no longer covers the middle of the page, where the play icon is
+            playView.setVisibility(View.GONE);
         }
         boolean seekButtons = ChanSettings.videoSeekButtons.get();
         view.setShowRewindButton(seekButtons);
@@ -594,10 +596,15 @@ public class MultiImageView extends FrameLayout implements View.OnClickListener,
             if (child == null) {
                 continue;
             }
-            MarginLayoutParams params = (MarginLayoutParams) child.getLayoutParams();
+            LayoutParams params = (LayoutParams) child.getLayoutParams();
             if (params.bottomMargin != margin) {
                 params.bottomMargin = margin;
                 child.setLayoutParams(params);
+            }
+            // A centered child is moved up by its whole bottom margin, instead of being centered
+            // in the space left above it. Move it back down by half.
+            if ((params.gravity & Gravity.VERTICAL_GRAVITY_MASK) == Gravity.CENTER_VERTICAL) {
+                child.setTranslationY(margin / 2f);
             }
         }
     }

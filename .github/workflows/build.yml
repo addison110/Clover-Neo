@@ -70,8 +70,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Oldest supported, edge-to-edge enforcement, current target
-        api-level: [23, 35, 36]
+        # Oldest supported (Android 8), edge-to-edge enforcement, current target
+        api-level: [26, 35, 36]
     steps:
       - uses: actions/checkout@v7
 

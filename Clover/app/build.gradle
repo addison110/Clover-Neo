@@ -31,7 +31,7 @@ android {
 
     defaultConfig {
         applicationId = "io.github.addison110.cloverneo"
-        minSdk = 23
+        minSdk = 26
         targetSdk = 36
 
         versionName = "v3.4.0"
